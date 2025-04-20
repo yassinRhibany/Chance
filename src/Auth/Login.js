@@ -1,18 +1,21 @@
 import axios from "axios";
 import { useState } from "react";
 import { baseURL, LOGIN,  } from "../Api/Api";
+
 export default function Login(){
     // states
-const [form,SetForm]=useState({
+    const [form,SetForm]=useState({
+        name: "",
         email: "",
-        password: ""
+        password: "",
+        repeatPassword:""
     });
-    
+  // handel form change
+    function handelChange(e){
+        SetForm({...form,[e.target.name]:e.target.value})
+      }
    
-    // handel form change
-      function handelChange(e){
-      SetForm({...form,[e.target.name]:e.target.value})
-    }
+    
     async function  handelSubmit(e){
         e.preventDefault();
         try{
@@ -28,19 +31,32 @@ const [form,SetForm]=useState({
        
     return (
         <div className="container">
-            <form onSubmit={handelSubmit}>
-            
-            <div className="mb-3">
-            <label htmlFor="email">Email:</label>
-            <input id="email" name="email" onChange={handelChange} value={form.email} type="email" placeholder="enter your email"/>
-            </div>
-            <div className="mb-3">
-            <label htmlFor="password">Password:</label>
-            <input id="password" name="password" onChange={handelChange} value={form.password} type="password" placeholder="enter your password"/>
-            </div>
-            <button >submit</button>
-            </form>
-         
+        <div className="row h-100"> 
+        <form className="form " onSubmit={handelSubmit}>
+            <div className="custom-form">
+                <h1>Register Now</h1>
+      
+
+        <div className="form-control">
+      
+        <input id="email" name="email" onChange={handelChange} value={form.email} type="email" placeholder="enter your email" required/>
+        <label htmlFor="email">Email</label>
         </div>
+        <div className="form-control">
+       
+        <input id="password" name="password" onChange={handelChange} value={form.password} type="password" placeholder="enter your password" required minLength={6}/>
+        <label htmlFor="password">Password</label>
+        </div>
+        
+        <div className="customButton">
+        <button className="RejisterButton" >submit</button>
+        </div>
+       
+        </div>
+        </form>
+        </div>
+     
+    </div>
+        
     );
 }
