@@ -1,0 +1,13 @@
+.animated-button {
+    transition: all 0.3s ease;
+    transform-style: preserve-3d;
+  }
+  
+  .animated-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(254, 218, 106, 0.8) !important;
+  }
+  
+  .animated-button:active {
+    transform: translateY(1px);
+  }

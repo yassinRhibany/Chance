@@ -1,0 +1,85 @@
+
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(220, 174, 29, 0.3);
+}
+
+/* في ملف CSS */
+.close-btn {
+    transition: transform 0.3s ease;
+  }
+  
+  .close-btn:hover {
+    transform: rotate(90deg);
+  }
+  
+  /* ناثير النصوص  */
+  .nav-link {
+    position: relative;
+    transition: all 0.4s ease;
+  }
+  
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #FEDA6A;
+    transition: width 0.3s;
+  }
+  
+  .nav-link:hover::after {
+    width: 100%;
+  }
+
+  /* إضافة عناصر حركية */
+  .accent-glow {
+    filter: drop-shadow(0 0 8px rgba(254, 218, 106, 0.7));
+  }
+  
+  .card-hover {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+      0 10px 25px rgba(254, 218, 106, 0.3),
+      0 5px 10px rgba(254, 218, 106, 0.2) !important;
+  }
+
+
+
+  .sidebar-link {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .sidebar-link:hover {
+    background: linear-gradient(90deg, rgba(254, 218, 106, 0.1) 0%, transparent 100%);
+    color: #FEDA6A !important;
+    transform: translateX(5px);
+  }
+  
+  .sidebar-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: #FEDA6A;
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+  }
+  
+  .sidebar-link:hover::before {
+    transform: scaleY(1);
+  }

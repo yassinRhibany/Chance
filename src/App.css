@@ -1,1 +1,34 @@
 
+:root {
+    --primary-dark: #1D1E22;
+    --secondary-dark: #393F4D;
+    --light-text: #D4D4DC;
+    --accent: #FEDA6A;
+    
+    /* تدرجات حيوية جديدة */
+    --accent-glow: #FFEEA8; /* توهج ذهبي */
+    --primary-glow: #2A2C33; /* توهج للخلفية */
+    --text-hover: #FFFFFF; /* نص أكثر سطوعاً عند التفاعل */
+  }
+  
+  /* تخصيصات Bootstrap */
+  .bg-primary-dark {
+    background-color: var(--primary-dark) !important;
+  }
+  .bg-secondary-dark {
+    background-color: var(--secondary-dark) !important;
+  }
+  .text-light {
+    color: var(--light-text) !important;
+  }
+  .text-accent {
+    color: var(--accent) !important;
+  }
+  .border-accent {
+    border-color: var(--accent) !important;
+  }
+
+  /* في ملف App.css */
+.gap-4 {
+    gap: 1.5rem !important;
+  }
