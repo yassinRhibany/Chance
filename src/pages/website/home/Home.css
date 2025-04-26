@@ -1,0 +1,52 @@
+/* تأثير التدرج اللوني للنص */
+.text-gradient {
+    background: linear-gradient(90deg, #FEDA6A, #FFEEA8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline;
+  }
+  
+  /* تأثيرات البطاقات */
+  .opportunity-card {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid transparent;
+  }
+  
+  .opportunity-card:hover {
+    transform: translateY(-5px);
+    border-color: #FEDA6A;
+    box-shadow: 0 10px 20px rgba(254, 218, 106, 0.1);
+  }
+  
+  /* تعديلات الكاروسيل */
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    background-color: #FEDA6A;
+    border-radius: 50%;
+    padding: 15px;
+  }
+  
+  /* تأثيرات الصورة الرئيسية */
+  .hero-image-container {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-image-container::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid #FEDA6A;
+    border-radius: 12px;
+    z-index: -1;
+    transition: all 0.3s ease;
+  }
+  
+  .hero-image-container:hover::after {
+    top: -10px;
+    left: -10px;
+  }

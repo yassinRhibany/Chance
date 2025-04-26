@@ -4,7 +4,9 @@ import { List, Moon, Sun, Person } from 'react-bootstrap-icons';
 import Sidebar from '../sidebar/Sidebar';
 import icon from '../../../image/chance.png'
 import './header.css'
-const Header = () => {
+import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+export default function Header (){
     const [darkMode, setDarkMode] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -16,7 +18,7 @@ const Header = () => {
                 expand="lg"
                 className="py-3 border-bottom border-accent"
             >
-                <Container fluid>
+                <Container >
                     {/* الجزء الأيسر: الشعار + قائمة الصفحات */}
                     <div className="d-flex align-items-center">
                         {/* زر السايدبار (للأجهزة الصغيرة) */}
@@ -32,7 +34,7 @@ const Header = () => {
                         {/* الشعار */}
                         <Navbar.Brand href="#home" className="me-5" style={{ paddingLeft: "200px" }}>
                             <Image
-                            
+
                                 src={icon}
                                 height="40"
                                 alt="شعار المنصة"
@@ -41,9 +43,9 @@ const Header = () => {
 
                         {/* قائمة الصفحات (تظهر على الأجهزة الكبيرة فقط) */}
                         <Nav className="d-none d-lg-flex gap-4">
-                            <Nav.Link href="#home" className="text-light fs-5">الصفحة الرئيسية</Nav.Link>
-                            <Nav.Link href="#about" className="text-light fs-5">حول المنصة</Nav.Link>
-                            <Nav.Link href="#contact" className="text-light fs-5">اتصل بنا</Nav.Link>
+                            <Nav.Link  as={NavLink}  to="./" className="text-light fs-5">الصفحة الرئيسية</Nav.Link>
+                            <Nav.Link  as={NavLink}  to='./about' className="text-light fs-5">حول المنصة</Nav.Link>
+                            <Nav.Link  as={NavLink}  to="./contact" className="text-light fs-5">اتصل بنا</Nav.Link>
                         </Nav>
                     </div>
 
@@ -88,4 +90,3 @@ const Header = () => {
     );
 };
 
-export default Header;

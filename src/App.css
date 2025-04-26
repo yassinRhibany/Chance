@@ -32,3 +32,17 @@
 .gap-4 {
     gap: 1.5rem !important;
   }
+
+  /* تأكد من تعريف الفئات بشكل صحيح */
+.dark-mode {
+    background-color: #1D1E22;
+    color: #D4D4DC;
+  }
+  
+  .light-mode {
+    background-color: #FFFFFF;
+    color: #1D1E22;
+  }
+
+
+  
