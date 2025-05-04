@@ -1,69 +1,89 @@
-import axios from "axios";
-import { useState } from "react";
-import { baseURL, REGISTER } from "../Api/Api";
+import React, { useState } from 'react';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 
-export default function Register(){
-    // states
-    const [form,SetForm]=useState({
-        name: "",
-        email: "",
-        password: "",
-        repeatPassword:""
-    });
-    
-   
-    // handel form change
-      function handelChange(e){
-      SetForm({...form,[e.target.name]:e.target.value})
-    }
-    async function  handelSubmit(e){
-        e.preventDefault();
-        try{
-           await axios.post(`${baseURL}/${REGISTER}`,form);
-            console.log("success");
-        }catch(err){
-            console.log(err);
-        }
+function SignUpFormCustom() {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-    }
-    
-    
-       
-    return (
-        <div className="container">
-            <div className="row h-100"> 
-            <form className="form " onSubmit={handelSubmit}>
-                <div className="custom-form">
-                    <h1>Register Now</h1>
-          <div className="form-control">
-           
-            <input id="name" name="name" onChange={handelChange} type="text" value={form.name} placeholder="enter your name" required/>
-            <label htmlFor="name">Name</label>
-            </div>
+  const primaryDark = '#1D1E22';
+  const accent = '#FEDA6A';
+  const lightText = '#D4D4DC';
 
-            <div className="form-control">
-          
-            <input id="email" name="email" onChange={handelChange} value={form.email} type="email" placeholder="enter your email" required/>
-            <label htmlFor="email">Email</label>
-            </div>
-            <div className="form-control">
-           
-            <input id="password" name="password" onChange={handelChange} value={form.password} type="password" placeholder="enter your password" required minLength={6}/>
-            <label htmlFor="password">Password</label>
-            </div>
-            <div className="form-control">
-           
-            <input id="repeatPassword" name="repeatPassword" onChange={handelChange} value={form.repeatPassword} type="password" placeholder="repeat Password" required minLength={6}/>
-            <label htmlFor="password">Password</label>
-            </div>
-            <div className="customButton">
-            <button className="RejisterButton" >submit</button>
-            </div>
-           
-            </div>
-            </form>
-            </div>
-         
-        </div>
-    );
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log('تم تقديم النموذج:', { username, email, password, confirmPassword });
+  };
+
+  return (
+    <Container className="mt-5 text-end" dir="rtl" style={{ backgroundColor: primaryDark, color: lightText, padding: '20px', borderRadius: '12px'  }}>
+      <Row className="justify-content-center">
+        <Col md={6}>
+          <h2 className="text-center mb-4" style={{ color: accent }}>إنشاء حساب</h2>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="formBasicUsername">
+              <Form.Label style={{ color: lightText }}>اسم المستخدم</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="أدخل اسم المستخدم"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Label style={{ color: lightText }}>البريد الإلكتروني</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="أدخل البريد الإلكتروني"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+              />
+              <Form.Text className="text-muted text-start" style={{ color: '#aaa ' }}>
+                لن نشارك بريدك الإلكتروني مع أي شخص آخر.
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Label style={{ color: lightText }}>كلمة المرور</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="أدخل كلمة المرور"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formBasicConfirmPassword">
+              <Form.Label style={{ color: lightText }}>تأكيد كلمة المرور</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="أعد إدخال كلمة المرور"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+              />
+            </Form.Group>
+
+            <Button variant="primary" type="submit" className="w-100" style={{ backgroundColor: accent, borderColor: accent, color: primaryDark }}>
+              إنشاء حساب
+            </Button>
+          </Form>
+          <div className="mt-3 text-center" style={{ color: lightText }}>
+            لديك حساب بالفعل؟ <a href="/login" style={{ color: accent }}>تسجيل الدخول</a>
+          </div>
+        </Col>
+      </Row>
+    </Container>
+  );
 }
+
+export default SignUpFormCustom;

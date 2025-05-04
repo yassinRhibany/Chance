@@ -1,62 +1,56 @@
-import axios from "axios";
-import { useState } from "react";
-import { baseURL, LOGIN,  } from "../Api/Api";
+import React, { useState } from 'react';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 
-export default function Login(){
-    // states
-    const [form,SetForm]=useState({
-        name: "",
-        email: "",
-        password: "",
-        repeatPassword:""
-    });
-  // handel form change
-    function handelChange(e){
-        SetForm({...form,[e.target.name]:e.target.value})
-      }
-   
-    
-    async function  handelSubmit(e){
-        e.preventDefault();
-        try{
-           await axios.post(`${baseURL}/${LOGIN}`,form);
-            console.log("success");
-        }catch(err){
-            console.log(err);
-        }
+function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-    }
-    
-    
-       
-    return (
-        <div className="container">
-        <div className="row h-100"> 
-        <form className="form " onSubmit={handelSubmit}>
-            <div className="custom-form">
-                <h1>Register Now</h1>
-      
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // هنا يمكنك إضافة منطق معالجة تسجيل الدخول
+    console.log('تم تقديم نموذج تسجيل الدخول:', { email, password });
+    // يمكنك أيضًا إضافة عمليات التحقق من الصحة هنا
+  };
 
-        <div className="form-control">
-      
-        <input id="email" name="email" onChange={handelChange} value={form.email} type="email" placeholder="enter your email" required/>
-        <label htmlFor="email">Email</label>
-        </div>
-        <div className="form-control">
-       
-        <input id="password" name="password" onChange={handelChange} value={form.password} type="password" placeholder="enter your password" required minLength={6}/>
-        <label htmlFor="password">Password</label>
-        </div>
-        
-        <div className="customButton">
-        <button className="RejisterButton" >submit</button>
-        </div>
-       
-        </div>
-        </form>
-        </div>
-     
-    </div>
-        
-    );
+  return (
+    <Container className="mt-5">
+      <Row className="justify-content-center">
+        <Col md={6}>
+          <h2 className="text-center mb-4">تسجيل الدخول</h2>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Label>البريد الإلكتروني</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="أدخل البريد الإلكتروني"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="formBasicPassword">
+              <Form.Label>كلمة المرور</Form.Label>
+              <Form.Control
+                type="password"
+                placeholder="أدخل كلمة المرور"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </Form.Group>
+
+            <Button variant="primary" type="submit" className="w-100">
+              تسجيل الدخول
+            </Button>
+          </Form>
+          <div className="mt-3 text-center">
+            ليس لديك حساب؟ <a href="/signup">إنشاء حساب</a>
+          </div>
+        </Col>
+      </Row>
+    </Container>
+  );
 }
+
+export default LoginForm;
