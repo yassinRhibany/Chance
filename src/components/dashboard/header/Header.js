@@ -66,7 +66,7 @@ export default function Header (){
                         </Button>
 
                         {/* زر التسجيل */}
-                        <Button
+                        <Button 
                             variant="primary"
                             className="animated-button"
                             style={{
@@ -75,6 +75,7 @@ export default function Header (){
                                 border: 'none',
                                 boxShadow: '0 0 15px rgba(254, 218, 106, 0.5)'
                             }}
+                           
                         >
                             تسجيل الدخول
                         </Button>

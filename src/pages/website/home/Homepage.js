@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { Container, Row, Col, Button, Carousel } from 'react-bootstrap';
 import { ArrowRight, BarChart, ShieldCheck, Users } from 'react-bootstrap-icons';
 import investement from '../../../image/investment.png'
+
 import './Home.css'
+import { Nav } from '@restart/ui';
+import { NavLink } from 'react-router-dom';
 export default function HomePage() {
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -23,18 +26,22 @@ export default function HomePage() {
                                 منصة رائدة تصل المستثمرين بأفضل الفرص الصناعية الموثوقة
                             </p>
                             <div className="d-flex gap-3">
-                                <Button
+                                <NavLink to={"/investment"}
                                     variant="primary"
                                     size="lg"
                                     style={{
                                         backgroundColor: '#FEDA6A',
                                         borderColor: '#FEDA6A',
                                         color: '#1D1E22',
-                                        fontWeight: '600'
+                                        fontWeight: '600',
+                                        textDecoration:"none",
+                                        textAlign:"center"
+                                        
                                     }}
                                 >
+                                    
                                     ابدأ الاستثمار الآن <ArrowRight className="ms-2" />
-                                </Button>
+                                </NavLink>
                                 <Button
                                     variant="outline-light"
                                     size="lg"
