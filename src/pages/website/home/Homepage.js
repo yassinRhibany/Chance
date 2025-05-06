@@ -26,7 +26,7 @@ export default function HomePage() {
                                 منصة رائدة تصل المستثمرين بأفضل الفرص الصناعية الموثوقة
                             </p>
                             <div className="d-flex gap-3">
-                                <NavLink to={"/investment"}
+                                <Button as={NavLink }  to={"/investment"}
                                     variant="primary"
                                     size="lg"
                                     style={{
@@ -41,7 +41,7 @@ export default function HomePage() {
                                 >
                                     
                                     ابدأ الاستثمار الآن <ArrowRight className="ms-2" />
-                                </NavLink>
+                                </Button>
                                 <Button
                                     variant="outline-light"
                                     size="lg"
