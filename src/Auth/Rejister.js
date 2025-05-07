@@ -12,7 +12,7 @@ function SignUpFormCustom() {
     userType: "investor" // القيمة الافتراضية
   });
 
-  const primaryDark = '#1D1E22';
+  const primaryDark = '#393F4D';
   const accent = '#FEDA6A';
   const lightText = '#D4D4DC';
 
@@ -47,7 +47,11 @@ function SignUpFormCustom() {
                 value={form.name}
                 onChange={handelChange}
                 required
-                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+                style={{
+                   backgroundColor: '#ffff', 
+                  //  color: lightText,
+                    borderColor: '#555'
+                   }}
               />
             </Form.Group>
 
@@ -60,7 +64,11 @@ function SignUpFormCustom() {
                 value={form.email}
                 onChange={handelChange}
                 required
-                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+                style={{ 
+                  backgroundColor: '#ffff', 
+                  // color: lightText,
+                   borderColor: '#555' 
+                  }}
               />
               <Form.Text style={{ color: "red" }}>
                 لن نشارك بريدك الإلكتروني مع أي شخص آخر.
@@ -76,7 +84,11 @@ function SignUpFormCustom() {
                 value={form.password}
                 onChange={handelChange}
                 required
-                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+                style={{
+                   backgroundColor: '#ffff',
+                  //  color: lightText, 
+                   borderColor: '#555' 
+                  }}
               />
             </Form.Group>
 
@@ -89,7 +101,11 @@ function SignUpFormCustom() {
                 value={form.repeatPassword}
                 onChange={handelChange}
                 required
-                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+                style={{
+                   backgroundColor: '#ffff',
+                  //  color: lightText, 
+                   borderColor: '#555' 
+                  }}
               />
             </Form.Group>
 
@@ -101,7 +117,7 @@ function SignUpFormCustom() {
                 value={form.userType}
                 onChange={handelChange}
                 required
-                style={{ backgroundColor: '#333', color: lightText, borderColor: '#555' }}
+                style={{ backgroundColor: '#ffff', color: lightText, borderColor: '#555' }}
               >
                 <option value="investor">مستثمر</option>
                 <option value="propertyOwner">صاحب عقار</option>

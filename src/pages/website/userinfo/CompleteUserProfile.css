@@ -1,0 +1,32 @@
+/* تخصيصات إضافية */
+.progress-bar-accent {
+  background-color: #FEDA6A !important;
+}
+
+.invalid-feedback {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.875rem;
+}
+
+/* تأثيرات الأزرار */
+.btn-accent {
+  background-color: #FEDA6A !important;
+  color: #1D1E22 !important;
+  transition: all 0.3s ease;
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(254, 218, 106, 0.3);
+}
+
+.btn-outline-accent {
+  color: #FEDA6A !important;
+  border-color: #FEDA6A !important;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-accent:hover {
+  background-color: rgba(254, 218, 106, 0.1) !important;
+}

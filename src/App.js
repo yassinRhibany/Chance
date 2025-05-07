@@ -6,6 +6,7 @@ import Register from './Auth/Rejister';
 import Header from './components/dashboard/header/Header';
 import About from './pages/website/ِabout/about';
 import Investment from './pages/website/investment/investment';
+import CompleteUserProfile from './pages/website/userinfo/CompleteUserProfile';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
           <Route path='/register' element={<Register />} ></Route>
           <Route path='/about' element={<About />} ></Route>
           <Route path='/investment' element={<Investment />} ></Route>
+          <Route path='/CompleteUserProfile' element={<CompleteUserProfile />} ></Route>
 
         </Routes>
 
