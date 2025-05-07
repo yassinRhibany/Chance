@@ -1,5 +1,6 @@
 import React from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { NavLink } from 'react-router-dom';
 
 export default function Investment  () {
   const primaryDark = '#1D1E22';
@@ -85,7 +86,7 @@ export default function Investment  () {
                       <p>📉 أقل مساهمة: {property.minContribution}</p>
                     </div>
                   </Card.Text>
-                  <Button
+                  <Button as={NavLink} to={"/card"}
                     style={{
                       backgroundColor: accent,
                       borderColor: accent,
