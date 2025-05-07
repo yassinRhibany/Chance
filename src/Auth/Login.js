@@ -9,7 +9,7 @@ function LoginFormCustom() {
     password: ""
   });
 
-  const primaryDark = '#1D1E22';
+  const primaryDark = '#393F4D';
   const accent = '#FEDA6A';
   const lightText = '#D4D4DC';
 
@@ -51,8 +51,8 @@ function LoginFormCustom() {
                 onChange={handleChange}
                 required
                 style={{ 
-                  backgroundColor: '#333', 
-                  color: lightText, 
+                  backgroundColor: '#ffff', 
+                  // color: lightText, 
                   borderColor: '#555' 
                 }}
               />
@@ -69,8 +69,8 @@ function LoginFormCustom() {
                 onChange={handleChange}
                 required
                 style={{ 
-                  backgroundColor: '#333', 
-                  color: lightText, 
+                  backgroundColor: '#ffff', 
+                  // color: lightText, 
                   borderColor: '#555' 
                 }}
               />

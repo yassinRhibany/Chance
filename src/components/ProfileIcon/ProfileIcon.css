@@ -1,0 +1,8 @@
+.profile-icon-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(254, 218, 106, 0.3);
+  }
+  
+  .profile-icon-btn:active {
+    transform: scale(0.95);
+  }

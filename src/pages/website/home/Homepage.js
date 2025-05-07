@@ -35,8 +35,11 @@ export default function HomePage() {
                                         color: '#1D1E22',
                                         fontWeight: '600',
                                         textDecoration:"none",
-                                        textAlign:"center"
-                                        
+                                        textAlign:"center",
+                                        fontSize:"20px",
+                                        borderRadius:"5px",
+                                        justifyItems:"center",
+                                        padding:"8px 16px"    
                                     }}
                                 >
                                     
