@@ -45,4 +45,47 @@
   }
 
 
+  /* التأثيرات الأساسية للسايد بار */
+.sidebar {
+  position: relative;
+  z-index: 100;
+  border-left: 1px solid #393F4D;
+}
+
+/* للتجاوب مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    height: 100vh;
+  }
+  
+  .sidebar.closed {
+    transform: translateX(-100%);
+  }
+  
+  .main-content {
+    margin-right: 0 !important;
+  }
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto; /* التمرير العمودي فقط */
+  will-change: transform; /* تسريع التمرير */
+  overscroll-behavior: contain; /* منع التمرير الزائد */
+}
+
   

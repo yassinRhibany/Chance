@@ -1,36 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar, Nav, Container, Button, Image } from 'react-bootstrap';
-import { List, Moon, Sun, Person } from 'react-bootstrap-icons';
-import Sidebar from '../sidebar/Sidebar';
+import { List, Moon, Sun, Person, X } from 'react-bootstrap-icons';
 import icon from '../../../image/chance.png'
 import './header.css'
 import { NavLink } from 'react-router-dom';
-import { Link } from 'react-router-dom';
 import ProfileIcon from '../../ProfileIcon/ProfileIcon';
+import { useSidebar } from '../../../Context/SidebarContext';
 export default function Header() {
-    const [darkMode, setDarkMode] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-
+    const { isSidebarOpen, toggleSidebar } = useSidebar();
+      
     return (
         <>
             <Navbar
                 bg="primary-dark"
                 variant="dark"
                 expand="lg"
-                className="py-3 border-bottom border-accent"
+                className="border-bottom border-accent"
+                style={{
+                   boxShadow:"0 2px 10px rgba(0, 0, 0, 0.1)",
+                    padding: '0',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1000
+                  }}
             >
                 <Container >
                     {/* الجزء الأيسر: الشعار + قائمة الصفحات */}
                     <div className="d-flex align-items-center">
                         {/* زر السايدبار (للأجهزة الصغيرة) */}
-                        <Button
-                            variant="outline-accent"
-                            className="me-3"
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            style={{ borderColor: '#DCAE1D' }}
-                        >
-                            <List color="#DCAE1D" />
-                        </Button>
+                      <Button
+                                 onClick={toggleSidebar}
+                                 variant="outline-accent"
+                                 className="m-3"
+                                 style={{
+                                   borderColor: '#FEDA6A',
+                                   color: '#FEDA6A'
+                                 }}
+                               >
+                                 {isSidebarOpen ? <X size={20} /> : <List size={20} />}
+                               </Button>
+                     
 
                         {/* الشعار */}
                         <Navbar.Brand href="#home" className="me-5" style={{ paddingLeft: "200px" }}>
@@ -52,19 +61,7 @@ export default function Header() {
 
                     {/* الجزء الأيمن: عناصر التحكم */}
                     <div className="d-flex align-items-center gap-3">
-                        {/* زر الوضع الليلي */}
-                        {/* <Button
-                            variant="outline-accent"
-                            className="rounded-circle p-2"
-                            onClick={() => setDarkMode(!darkMode)}
-                            style={{
-                                borderColor: '#DCAE1D',
-                                width: '40px',
-                                height: '40px'
-                            }}
-                        >
-                            {darkMode ? <Sun color="#DCAE1D" /> : <Moon color="#DCAE1D" />}
-                        </Button> */}
+                     
 
                         <Nav.Link as={NavLink} to="./CompleteUserProfile" style={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <ProfileIcon isProfileComplete={true} />
@@ -90,10 +87,7 @@ export default function Header() {
                 </Container>
             </Navbar>
 
-            <Sidebar
-                show={sidebarOpen}
-                handleClose={() => setSidebarOpen(false)}
-            />
+       
         </>
     );
 };
