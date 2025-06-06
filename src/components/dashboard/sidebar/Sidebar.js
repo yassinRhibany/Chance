@@ -3,6 +3,7 @@ import icon from '../../../image/icon.ico';
 import './sidebar.css';
 import { NavLink } from 'react-router-dom';
 import { useSidebar } from '../../../Context/SidebarContext';
+import { ClockHistory, GraphUp, Highlights, House, Wallet, Wallet2 } from 'react-bootstrap-icons';
 
 export default function Sidebar({ handleClose }) {
     const { isSidebarOpen } = useSidebar();
@@ -18,7 +19,7 @@ export default function Sidebar({ handleClose }) {
         >
             <div
                 className="bg-primary-dark text-light d-flex flex-column"
-                style={{ height:"90vh"}}
+                style={{ height: "90vh" }}
             >
                 <div className="d-flex" style={{ justifyContent: "space-between" }}>
                     <Navbar.Brand as={NavLink} to="/" className="">
@@ -37,6 +38,7 @@ export default function Sidebar({ handleClose }) {
                     }}
                 >
                     <Nav className="flex-column gap-3 px-3">
+                        
                         <Nav.Link
                             as={NavLink}
                             to="/"
@@ -47,9 +49,16 @@ export default function Sidebar({ handleClose }) {
                                 margin: '4px 0',
                                 borderRadius: '4px'
                             }}
-                 
+
                         >
+                             <House
+                            size={30}
+                            color="#97B152"
+                            className="me-0"
+                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
+                        />
                             الصفحة الرئيسية
+                            
                         </Nav.Link>
                         <Nav.Link
                             as={NavLink}
@@ -61,9 +70,55 @@ export default function Sidebar({ handleClose }) {
                                 margin: '4px 0',
                                 borderRadius: '4px'
                             }}
-                   
+
                         >
+                            <GraphUp
+                            size={30}
+                            color="#97B152"
+                            className="me-0"
+                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
+                        />
                             سجل الأستثمار
+                        </Nav.Link>
+                        <Nav.Link
+                            as={NavLink}
+                            to="/investmentrecord"
+                            className="sidebar-link"
+                            style={{
+                                color: '#D4D4DC',
+                                padding: '12px 20px',
+                                margin: '4px 0',
+                                borderRadius: '4px'
+                            }}
+
+                        >
+                            <ClockHistory
+                            size={30}
+                            color="#97B152"
+                            className="me-0"
+                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
+                        />
+                            السجل المالي
+                        </Nav.Link>
+                        <Nav.Link
+                            as={NavLink}
+                            to="/walet"
+                            className="sidebar-link"
+                            style={{
+                                color: '#D4D4DC',
+                                padding: '12px 20px',
+                                margin: '4px 0',
+                                borderRadius: '4px'
+                            }}
+
+                        >
+                            <Wallet2
+                            size={30}
+                            color="#97B152"
+                            className="me-0"
+                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
+                        />
+                            المحفة الالكترونية
                         </Nav.Link>
                     </Nav>
                 </Offcanvas.Body>

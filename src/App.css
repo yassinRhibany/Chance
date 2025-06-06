@@ -52,7 +52,7 @@
   border-left: 1px solid #393F4D;
 }
 
-/* للتجاوب مع الشاشات الصغيرة */
+/* للتجاوب مع الشاشات الصغيرة
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -66,7 +66,7 @@
   .main-content {
     margin-right: 0 !important;
   }
-}
+} */
 
 .app-container {
   display: flex;

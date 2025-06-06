@@ -7,7 +7,7 @@ export default function Investment  () {
   const accent = '#FEDA6A';
   const lightText = '#D4D4DC';
   const darkGray = '#333';
-
+  
   // بيانات العقارات
   const properties = [
     {
