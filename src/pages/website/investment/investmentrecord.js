@@ -12,7 +12,7 @@ const Investmentrecord = () => {
   const investments = [
     {
       id: 1,
-      property: 'عقار تجاري مميز',
+      property: 'مصنع عدد صناعية ',
       amount: '500,000 ريال',
       date: '15 مارس 2024',
       duration: '12 شهر',
@@ -21,7 +21,7 @@ const Investmentrecord = () => {
     },
     {
       id: 2,
-      property: 'مجمع سكني فاخر',
+      property:  'مصنع اجهزة منزلية',
       amount: '750,000 ريال',
       date: '1 فبراير 2024',
       duration: '24 شهر',
@@ -30,7 +30,7 @@ const Investmentrecord = () => {
     },
     {
       id: 3,
-      property: 'أرض استثمارية',
+      property: ' شركة ماستر للغذئيات',
       amount: '1,200,000 ريال',
       date: '10 يناير 2024',
       duration: '36 شهر',
