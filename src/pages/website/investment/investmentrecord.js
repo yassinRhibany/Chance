@@ -91,7 +91,7 @@ const Investmentrecord = () => {
                     <ProgressBar 
                       now={investment.progress}
                       label={`${investment.progress}%`}
-                      variant="warning"
+                      // variant="#7CB2422"
                       style={{ height: '20px' }}
                     />
                   </div>

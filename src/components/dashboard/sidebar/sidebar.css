@@ -83,3 +83,11 @@
   .sidebar-link:hover::before {
     transform: scaleY(1);
   }
+ 
+  /* التأثيرات الأساسية للسايد بار */
+.sidebar {
+  position: relative;
+  z-index: 100;
+  border-left: 1px solid #393F4D;
+}
+

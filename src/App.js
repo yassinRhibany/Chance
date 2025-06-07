@@ -12,38 +12,55 @@ import CompleteUserProfile from './pages/website/userinfo/CompleteUserProfile';
 import Card from './pages/website/investment/card';
 
 import Investmentrecord from './pages/website/investment/investmentrecord';
-
+import Sidebar from './components/dashboard/sidebar/Sidebar';
+import { SidebarProvider } from './Context/SidebarContext';
+import { Container } from 'react-bootstrap';
+import Wallet from './pages/Payment/payment';
 
 
 
 export default function App() {
+
   return (
-    
-      <div className="App" >
+    <SidebarProvider>
+      <div className='App  app-container'>
         <Header />
-        <Routes>
+        <div className='content-wrappe' style={{ display: 'flex', minHeight: '100vh' }} >
+          <Sidebar />
+          {/* المحتوى الرئيسي */}
+          
+    
+          <div className="main-content" style={{ flex: 1 }}>
+        {/* <Container > */}
+       
+              <Routes>
 
-          <Route path='/' element={<HomePage />} ></Route>
-          <Route path='/login' element={<Login />} ></Route>
-          <Route path='/register' element={<Register />} ></Route>
-          <Route path='/about' element={<About />} ></Route>
-          <Route path='/investment' element={<Investment />} ></Route>
-          <Route path='/CompleteUserProfile' element={<CompleteUserProfile />} ></Route>
+                <Route path='/' element={<HomePage />} ></Route>
+                {/* <Route path='/login' element={<Login />} ></Route> */}
+                <Route path='/register' element={<Register />} ></Route>
+                <Route path='/about' element={<About />} ></Route>
+                <Route path='/investment' element={<Investment />} ></Route>
+                <Route path='/CompleteUserProfile' element={<CompleteUserProfile />} ></Route>
+                <Route path='/Walet' element={<Wallet />} ></Route>
 
-          <Route path='/' element={<HomePage />}Route/>
-          <Route path='/login' element={<Login />} Route/>
-          <Route path='/register' element={<Register />} Route/>
-          <Route path='/about' element={<About />} Route/>
-          <Route path='/investment' element={<Investment />}  Route/>
-          <Route path='card' element={<Card/>}/>
-          <Route path='/investmentrecord' element={<Investmentrecord/>}/>
-         
+                <Route path='/' element={<HomePage />} Route />
+                <Route path='/login' element={<Login />} Route />
+                <Route path='/register' element={<Register />} Route />
+                <Route path='/about' element={<About />} Route />
+                <Route path='/investment' element={<Investment />} Route />
+                <Route path='card' element={<Card />} />
+                <Route path='/investmentrecord' element={<Investmentrecord />} />
 
+              </Routes>
+      
+   {/* </Container> */}
 
-        </Routes>
+          </div>
+        </div>
 
       </div>
-   
+    </SidebarProvider>
+
 
   );
 }

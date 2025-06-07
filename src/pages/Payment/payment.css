@@ -1,0 +1,25 @@
+/* تأثيرات البطاقة */
+.balance-card {
+  transition: all 0.3s ease;
+}
+
+.balance-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* تأثيرات زر الإيداع */
+.btn-accent {
+  transition: all 0.3s ease;
+}
+
+.btn-accent:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(254, 218, 106, 0.3);
+}
+
+/* تأثيرات عناصر الحركات */
+.transaction-item:hover {
+  transform: translateX(5px);
+  background-color: #2A2C33 !important;
+}
