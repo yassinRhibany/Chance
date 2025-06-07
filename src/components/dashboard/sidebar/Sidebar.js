@@ -3,7 +3,7 @@ import icon from '../../../image/icon.ico';
 import './sidebar.css';
 import { NavLink } from 'react-router-dom';
 import { useSidebar } from '../../../Context/SidebarContext';
-import { ClockHistory, GraphUp, Highlights, House, Wallet, Wallet2 } from 'react-bootstrap-icons';
+import { ClockHistory, GraphUp, Highlights, House, Lightning, Plus, Wallet, Wallet2 } from 'react-bootstrap-icons';
 
 export default function Sidebar({ handleClose }) {
     const { isSidebarOpen } = useSidebar();
@@ -60,6 +60,28 @@ export default function Sidebar({ handleClose }) {
                             الصفحة الرئيسية
                             
                         </Nav.Link>
+
+                         <Nav.Link
+                            as={NavLink}
+                            to="/investment"
+                            className="sidebar-link"
+                            style={{
+                                color: '#D4D4DC',
+                                padding: '12px 20px',
+                                margin: '4px 0',
+                                borderRadius: '4px'
+                            }}
+
+                        >
+                            <Lightning
+                            size={30}
+                            color="#97B152"
+                            className="me-0"
+                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
+                        />
+                            فرص استثمارية
+                        </Nav.Link>
+
                         <Nav.Link
                             as={NavLink}
                             to="/investmentrecord"
@@ -80,6 +102,29 @@ export default function Sidebar({ handleClose }) {
                         />
                             سجل الأستثمار
                         </Nav.Link>
+
+                      <Nav.Link
+                            as={NavLink}
+                            to="/FactoryRegistration"
+                            className="sidebar-link"
+                            style={{
+                                color: '#D4D4DC',
+                                padding: '12px 20px',
+                                margin: '4px 0',
+                                borderRadius: '4px'
+                            }}
+
+                        >
+                            <Plus
+                            size={30}
+                            color="#97B152"
+                            className="me-0"
+                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
+                        />
+                        اضافة مصنع
+                        </Nav.Link>
+
+
                         <Nav.Link
                             as={NavLink}
                             to="/investmentrecord"
