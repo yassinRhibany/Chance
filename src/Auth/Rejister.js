@@ -8,8 +8,7 @@ function SignUpFormCustom() {
     name: "",
     email: "",
     password: "",
-    repeatPassword: "",
-    userType: "investor" // القيمة الافتراضية
+    role: "investor" // القيمة الافتراضية
   });
 
   const primaryDark = '#393F4D';
@@ -99,7 +98,7 @@ function SignUpFormCustom() {
                 name="repeatPassword"
                 placeholder="أعد إدخال كلمة المرور"
                 value={form.repeatPassword}
-                onChange={handelChange}
+               
                 required
                 style={{
                    backgroundColor: '#ffff',
