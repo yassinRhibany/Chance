@@ -16,6 +16,8 @@ import Sidebar from './components/dashboard/sidebar/Sidebar';
 import { SidebarProvider } from './Context/SidebarContext';
 import { Container } from 'react-bootstrap';
 import Wallet from './pages/Payment/payment';
+import FactoryRegistration from './pages/website/FactoryOwner/FactoryRegistration';
+import FinancialTransactions from './pages/website/userinfo/FinancialTransactions ';
 
 
 
@@ -36,20 +38,17 @@ export default function App() {
               <Routes>
 
                 <Route path='/' element={<HomePage />} ></Route>
-                {/* <Route path='/login' element={<Login />} ></Route> */}
+                <Route path='/login' element={<Login />} ></Route>
                 <Route path='/register' element={<Register />} ></Route>
                 <Route path='/about' element={<About />} ></Route>
                 <Route path='/investment' element={<Investment />} ></Route>
                 <Route path='/CompleteUserProfile' element={<CompleteUserProfile />} ></Route>
                 <Route path='/Walet' element={<Wallet />} ></Route>
-
-                <Route path='/' element={<HomePage />} Route />
-                <Route path='/login' element={<Login />} Route />
-                <Route path='/register' element={<Register />} Route />
-                <Route path='/about' element={<About />} Route />
-                <Route path='/investment' element={<Investment />} Route />
                 <Route path='card' element={<Card />} />
                 <Route path='/investmentrecord' element={<Investmentrecord />} />
+                <Route path='/FactoryRegistration' element={<FactoryRegistration />} />
+                <Route path='/FinancialTransactions' element={<FinancialTransactions/>} />
+              
 
               </Routes>
       

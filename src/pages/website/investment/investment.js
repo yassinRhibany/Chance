@@ -35,8 +35,8 @@ export default function Investment  () {
       image: 'https://source.unsplash.com/random/800x600?property3',
       title: 'أرض استثمارية',
       owner: 'علي عبدالله',
-      propertyNumber: '#9012',
-      area: '3000 م²',
+      // propertyNumber: '#9012',
+      // area: '3000 م²',
       requiredAmount: '8,000,000 ريال',
       minContribution: '80,000 ريال'
     }
@@ -80,8 +80,8 @@ export default function Investment  () {
                   <Card.Text>
                     <div>
                       <p>👤 المالك: {property.owner}</p>
-                      <p>🔢 رقم العقار: {property.propertyNumber}</p>
-                      <p>📐 المساحة: {property.area}</p>
+                      {/* <p>🔢 رقم العقار: {property.propertyNumber}</p> */}
+                      {/* <p>📐 المساحة: {property.area}</p> */}
                       <p>💰 المبلغ المطلوب: {property.requiredAmount}</p>
                       <p>📉 أقل مساهمة: {property.minContribution}</p>
                     </div>
