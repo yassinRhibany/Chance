@@ -1,0 +1,32 @@
+/* أنيميشن ظهور الرسالة من الأعلى */
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* أنيميشن إخفاء الرسالة */
+@keyframes slideOut {
+  from {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+}
+
+/* كلاس للأنيميشن */
+.alert-message {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.alert-message.hide {
+  animation: slideOut 0.3s ease-in forwards;
+}

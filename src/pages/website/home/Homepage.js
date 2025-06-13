@@ -1,13 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Container, Row, Col, Button, Carousel } from 'react-bootstrap';
 import { ArrowRight, BarChart, ShieldCheck, Users } from 'react-bootstrap-icons';
 import investement from '../../../image/investment.png'
 
 import './Home.css'
 import { Nav } from '@restart/ui';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useSidebar } from '../../../Context/SidebarContext';
+
 export default function HomePage() {
     const [activeIndex, setActiveIndex] = useState(0);
+    const location = useLocation();
+    const { setIsSidebarOpen } = useSidebar();
+
+// لفتح السايد بار تلقائيا عند تسجيل الدخول
+    useEffect(() => {
+        if (location.state?.openSidebar) {
+            setIsSidebarOpen(true);
+        }
+    }, [location]);
 
     return (
         <div className="home-page" style={{ backgroundColor: '#1D1E22', color: '#D4D4DC' }}>
@@ -26,7 +37,7 @@ export default function HomePage() {
                                 منصة رائدة تصل المستثمرين بأفضل الفرص الصناعية الموثوقة
                             </p>
                             <div className="d-flex gap-3">
-                                <Button as={NavLink }  to={"/investment"}
+                                <Button as={NavLink} to={"/investment"}
                                     variant="primary"
                                     size="lg"
                                     style={{
@@ -34,15 +45,15 @@ export default function HomePage() {
                                         borderColor: '#FEDA6A',
                                         color: '#1D1E22',
                                         fontWeight: '600',
-                                        textDecoration:"none",
-                                        textAlign:"center",
-                                        fontSize:"20px",
-                                        borderRadius:"5px",
-                                        justifyItems:"center",
-                                        padding:"8px 16px"    
+                                        textDecoration: "none",
+                                        textAlign: "center",
+                                        fontSize: "20px",
+                                        borderRadius: "5px",
+                                        justifyItems: "center",
+                                        padding: "8px 16px"
                                     }}
                                 >
-                                    
+
                                     ابدأ الاستثمار الآن <ArrowRight className="ms-2" />
                                 </Button>
                                 <Button
@@ -59,7 +70,7 @@ export default function HomePage() {
                                     src={investement}
                                     alt="استثمار صناعي"
                                     className="img-fluid rounded-3 shadow-lg"
-                                    // style={{ border: '2px solid #FEDA6A' }}
+                                // style={{ border: '2px solid #FEDA6A' }}
                                 />
                             </div>
                         </Col>

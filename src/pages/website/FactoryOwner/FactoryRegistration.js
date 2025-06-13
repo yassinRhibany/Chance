@@ -24,7 +24,7 @@ export default function FactoryRegistration () {
   });
 
   const [success, setSuccess] = useState(false);
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFactoryData(prev => ({ ...prev, [name]: value }));

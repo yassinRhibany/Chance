@@ -1,12 +1,18 @@
-import { Offcanvas, Nav, Button, Navbar, Image } from 'react-bootstrap';
+import { Offcanvas, Nav, Navbar, Image } from 'react-bootstrap';
 import icon from '../../../image/icon.ico';
 import './sidebar.css';
 import { NavLink } from 'react-router-dom';
 import { useSidebar } from '../../../Context/SidebarContext';
-import { ClockHistory, GraphUp, Highlights, House, Lightning, Plus, Wallet, Wallet2 } from 'react-bootstrap-icons';
+import { useAuth } from '../../../Context/AuthContext';
+import { getSidebarItems } from '../../../data/sidebarItems';
 
 export default function Sidebar({ handleClose }) {
     const { isSidebarOpen } = useSidebar();
+    const { user } = useAuth();
+    
+    // الحصول على العناصر حسب نوع المستخدم
+    const sidebarItems = getSidebarItems(user?.role);
+    
     return (
         <div
             className={`sidebar ${isSidebarOpen ? 'open' : 'closed'}`}
@@ -38,157 +44,48 @@ export default function Sidebar({ handleClose }) {
                     }}
                 >
                     <Nav className="flex-column gap-3 px-3">
-                        
-                        <Nav.Link
-                            as={NavLink}
-                            to="/"
-                            className="sidebar-link"
-                            style={{
-                                color: '#D4D4DC',
-                                padding: '12px 20px',
-                                margin: '4px 0',
-                                borderRadius: '4px'
-                            }}
-
-                        >
-                             <House
-                            size={30}
-                            color="#97B152"
-                            className="me-0"
-                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
-                        />
-                            الصفحة الرئيسية
-                            
-                        </Nav.Link>
-
-                         <Nav.Link
-                            as={NavLink}
-                            to="/investment"
-                            className="sidebar-link"
-                            style={{
-                                color: '#D4D4DC',
-                                padding: '12px 20px',
-                                margin: '4px 0',
-                                borderRadius: '4px'
-                            }}
-
-                        >
-                            <Lightning
-                            size={30}
-                            color="#97B152"
-                            className="me-0"
-                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
-                        />
-                            فرص استثمارية
-                        </Nav.Link>
-
-                        <Nav.Link
-                            as={NavLink}
-                            to="/investmentrecord"
-                            className="sidebar-link"
-                            style={{
-                                color: '#D4D4DC',
-                                padding: '12px 20px',
-                                margin: '4px 0',
-                                borderRadius: '4px'
-                            }}
-
-                        >
-                            <GraphUp
-                            size={30}
-                            color="#97B152"
-                            className="me-0"
-                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
-                        />
-                            سجل الأستثمار
-                        </Nav.Link>
-
-                      <Nav.Link
-                            as={NavLink}
-                            to="/FactoryRegistration"
-                            className="sidebar-link"
-                            style={{
-                                color: '#D4D4DC',
-                                padding: '12px 20px',
-                                margin: '4px 0',
-                                borderRadius: '4px'
-                            }}
-
-                        >
-                            <Plus
-                            size={30}
-                            color="#97B152"
-                            className="me-0"
-                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
-                        />
-                        اضافة مصنع
-                        </Nav.Link>
-
-
-                        <Nav.Link
-                            as={NavLink}
-                            to="/FinancialTransactions"
-                            className="sidebar-link"
-                            style={{
-                                color: '#D4D4DC',
-                                padding: '12px 20px',
-                                margin: '4px 0',
-                                borderRadius: '4px'
-                            }}
-
-                        >
-                            <ClockHistory
-                            size={30}
-                            color="#97B152"
-                            className="me-0"
-                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
-                        />
-                            السجل المالي
-                        </Nav.Link>
-                        <Nav.Link
-                            as={NavLink}
-                            to="/walet"
-                            className="sidebar-link"
-                            style={{
-                                color: '#D4D4DC',
-                                padding: '12px 20px',
-                                margin: '4px 0',
-                                borderRadius: '4px'
-                            }}
-
-                        >
-                            <Wallet2
-                            size={30}
-                            color="#97B152"
-                            className="me-0"
-                            style={{ cursor: 'pointer', margin:"0px 20px 0px "}}
-                        />
-                            المحفة الالكترونية
-                        </Nav.Link>
+                        {sidebarItems.filter(item => 
+                          !( item.path === "/about" || item.path === "/contact")
+                        ).map((item, index) => (
+                            <Nav.Link
+                                key={index}
+                                as={NavLink}
+                                to={item.path}
+                                className="sidebar-link"
+                                style={{
+                                    color: '#D4D4DC',
+                                    padding: '12px 20px',
+                                    margin: '4px 0',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                {item.icon}
+                                {item.name}
+                            </Nav.Link>
+                        ))}
                     </Nav>
                 </Offcanvas.Body>
 
                 <div className="border-top border-accent pt-3 pb-4 px-3">
                     <Nav className="flex-column gap-3">
-                        <Nav.Link
-                            as={NavLink}
-                            to="/about"
-                            className="text-light fs-5 py-2"
-                            onClick={handleClose}
-                        >
-                            حول المنصة
-                        </Nav.Link>
-                        <Nav.Link
-                            as={NavLink}
-                            to="/contact"
-                            className="text-light fs-5 py-2"
-                            onClick={handleClose}
-                        >
-                            اتصل بنا
-                        </Nav.Link>
+                        {sidebarItems.filter(item => 
+                            item.path === "/about" || item.path === "/contact"
+                        ).map((item, index) => (
+                            <Nav.Link
+                                key={`footer-${index}`}
+                                as={NavLink}
+                                to={item.path}
+                                className="text-light fs-5 py-2"
+                                onClick={handleClose}
+                            >
+                                {item.name}
+                            </Nav.Link>
+                        ))}
                     </Nav>
                 </div>
             </div>
         </div>
     );
-};
+}

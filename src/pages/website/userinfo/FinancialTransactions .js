@@ -80,7 +80,7 @@ const UserTransactions = () => {
   };
 
   return (
-    <Container fluid className="py-4">
+    <Container  className="py-4">
       <Card className="border-accent">
         <Card.Header className="bg-secondary-dark d-flex justify-content-between align-items-center">
           <h5 className="text-accent mb-0">

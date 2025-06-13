@@ -74,10 +74,7 @@ const FactoryDetails = () => {
   };
 
   return (
-    <Container fluid className="py-5" style={{
-      backgroundColor: primaryDark,
-      minHeight: '100vh'
-    }}>
+<>
       <Card style={{
         backgroundColor: darkGray,
         color: lightText,
@@ -274,7 +271,7 @@ const FactoryDetails = () => {
       </Modal>
 
       <Alertsucces showSuccessToast={showSuccessToast} investmentAmount={investmentAmount}/>
-    </Container>
+    </>
   );
 };
 
