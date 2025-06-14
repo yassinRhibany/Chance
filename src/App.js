@@ -18,7 +18,9 @@ import Wallet from './pages/Payment/payment';
 import FactoryRegistration from './pages/website/FactoryOwner/FactoryRegistration';
 import FinancialTransactions from './pages/website/userinfo/FinancialTransactions ';
 import UnauthorizedPage from './pages/website/Unauthorized/Unauthorized'
-import { AdminRoute, InvestorRoute, FactoryOwnerRoute } from './Auth/ProtectedRoute';
+import {InvestorLayout} from './Auth/ProtectRouts/InvestorLayout'
+import {FactoryLayout} from './Auth/ProtectRouts/FactoryLayout'
+import {AdminLayout} from './Auth/ProtectRouts/AdminLayout'
 import { AuthProvider } from './Context/AuthContext'; // أضفنا هذا الاستيراد
 
 
@@ -32,12 +34,10 @@ export default function App() {
           <div className='content-wrappe' style={{ display: 'flex', minHeight: '100vh' }} >
             <Sidebar />
             {/* المحتوى الرئيسي */}
-
-
             <div className="main-content" style={{ flex: 1 }}>
-
-
              <Routes>
+
+
                 {/* مسارات عامة */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -46,13 +46,13 @@ export default function App() {
                 <Route path="/about" element={<About />} />
 
                 {/* مسارات المدير */}
-                {/* <Route element={<AdminRoute />}>
-                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/users" element={<UserManagement />} />
-                </Route> */}
+                <Route element={<AdminLayout />}>
+                  {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
+                  {/* <Route path="/admin/users" element={<UserManagement />} /> */}
+                </Route>
 
                 {/* مسارات المستثمر */}
-                <Route element={<InvestorRoute />}>
+                <Route element={<InvestorLayout />}>
                   <Route path="/investor/investment" element={<Investment />} />
                   <Route path="/investor/profile" element={<CompleteUserProfile />} />
                   <Route path="/investor/wallet" element={<Wallet />} />
@@ -60,30 +60,17 @@ export default function App() {
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />
                 </Route>
 
+
                 {/* مسارات صاحب المصنع */}
-                <Route element={<FactoryOwnerRoute />}>
+                <Route element={<FactoryLayout />}>
                   <Route path="/factory/registration" element={<FactoryRegistration />} />
                   <Route path="/factory/profile" element={<CompleteUserProfile />} />
                   <Route path="/factory/wallet" element={<Wallet />} />
                 </Route>
+
+
+
               </Routes>
-              
-              {/* <Routes>
-                <Route path='/' element={<HomePage />} ></Route>
-                <Route path='/login' element={<Login />} ></Route> 
-                <Route path='/register' element={<Register />} ></Route>
-                <Route path='/about' element={<About />} ></Route>
-                <Route path='/investment' element={<Investment />} ></Route>
-                <Route path='/CompleteUserProfile' element={<CompleteUserProfile />} ></Route>
-                <Route path='/Walet' element={<Wallet />} ></Route>
-                <Route path='card' element={<Card />} />
-                <Route path='/investmentrecord' element={<Investmentrecord />} />
-                <Route path='/FactoryRegistration' element={<FactoryRegistration />} />
-                <Route path='/FinancialTransactions' element={<FinancialTransactions />} />
-              </Routes> */}
-
-
-
             </div>
           </div>
 
