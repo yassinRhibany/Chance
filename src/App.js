@@ -5,13 +5,13 @@ import Login from './Auth/Login';
 import Register from './Auth/Rejister';
 import Header from './components/dashboard/header/Header';
 import About from './pages/website/ِabout/about';
-import Investment from './pages/website/investment/investment';
+import Investment from './pages/website/investor/investment';
 
 import CompleteUserProfile from './pages/website/userinfo/CompleteUserProfile';
 
-import Card from './pages/website/investment/card';
+import Card from './pages/website/investor/card';
 
-import Investmentrecord from './pages/website/investment/investmentrecord';
+import Investmentrecord from './pages/website/investor/investmentrecord';
 import Sidebar from './components/dashboard/sidebar/Sidebar';
 import { SidebarProvider } from './Context/SidebarContext';
 import Wallet from './pages/Payment/payment';
@@ -23,6 +23,11 @@ import {FactoryLayout} from './Auth/ProtectRouts/FactoryLayout'
 import {AdminLayout} from './Auth/ProtectRouts/AdminLayout'
 import { AuthProvider } from './Context/AuthContext'; // أضفنا هذا الاستيراد
 
+import AdminAccountsPage from './pages/website/Admin/AdminAccountsPage';
+import UserDetailsPage from './pages/website/Admin/UserDetailsPage';
+import AdminInvestmentPage from './pages/website/Admin/AdminInvestmentPage';
+import AdminFactories from './pages/website/Admin/AdminFactoryes';
+
 
 export default function App() {
 
@@ -33,7 +38,7 @@ export default function App() {
           <Header />
           <div className='content-wrappe' style={{ display: 'flex', minHeight: '100vh' }} >
             <Sidebar />
-            {/* المحتوى الرئيسي */}
+            {/* المحتوى الرئيسي */} 
             <div className="main-content" style={{ flex: 1 }}>
              <Routes>
 
@@ -44,11 +49,14 @@ export default function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<About />} />
+                
 
                 {/* مسارات المدير */}
                 <Route element={<AdminLayout />}>
-                  {/* <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
-                  {/* <Route path="/admin/users" element={<UserManagement />} /> */}
+                 <Route path='/Admin/AdminAccountsPage' element={<AdminAccountsPage/>}/>
+                 <Route path="UserDetailsPage" element={<UserDetailsPage />} />
+                 <Route path="/Admin/AdminInvestmentPage" element={<AdminInvestmentPage />} />
+                 <Route path="/Admin/AdminFactories" element={<AdminFactories />} />
                 </Route>
 
                 {/* مسارات المستثمر */}
@@ -57,6 +65,8 @@ export default function App() {
                   <Route path="/investor/profile" element={<CompleteUserProfile />} />
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
+                  <Route path="/investor/Card" element={<Card />} />
+
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />
                 </Route>
 
