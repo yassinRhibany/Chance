@@ -1,6 +1,6 @@
 // src/data/sidebarItems.js
 import { House, Lightning, GraphUp, Plus, ClockHistory, Wallet2 } from 'react-bootstrap-icons';
-import { FaIndustry } from 'react-icons/fa';
+import { FaChartPie, FaClipboardCheck, FaIndustry } from 'react-icons/fa';
 import { FiBriefcase, FiUsers } from 'react-icons/fi';
 
 // العناصر المشتركة بين جميع المستخدمين
@@ -26,7 +26,7 @@ const commonItems = [
 const adminItems = [
   {
     path: "/Admin/AdminAccountsPage",
-    name: "ادارة المستخدمين",
+    name: "إدارة الحسابات",
     icon: <FiUsers  size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
   },
    {
@@ -38,6 +38,16 @@ const adminItems = [
     path: "/Admin/AdminFactories",
     name: "عرض  جميع المصانع",
     icon: <FaIndustry size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/Admin/AdminReturnes",
+    name: "   الأستثمارات و العوائد",
+    icon: <FaChartPie size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/Admin/ReportsPage",
+    name: "  التقارير",
+    icon: <FaClipboardCheck size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
   },
  
 ];

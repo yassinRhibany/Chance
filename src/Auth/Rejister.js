@@ -167,7 +167,7 @@ function SignUpFormCustom() {
                       style={{ backgroundColor: '#ffff', color: lightText, borderColor: '#555' }}
                     >
                       <option value="1">مستثمر</option>
-                      <option value="0">صاحب عقار</option>
+                      <option value="2">صاحب عقار</option>
                     </Form.Select>
                   </Form.Group>
                   <Button variant="primary" type="submit" className="w-100" style={{ backgroundColor: accent, borderColor: accent, color: primaryDark }}>

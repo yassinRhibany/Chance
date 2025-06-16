@@ -27,6 +27,8 @@ import AdminAccountsPage from './pages/website/Admin/AdminAccountsPage';
 import UserDetailsPage from './pages/website/Admin/UserDetailsPage';
 import AdminInvestmentPage from './pages/website/Admin/AdminInvestmentPage';
 import AdminFactories from './pages/website/Admin/AdminFactoryes';
+import AdminReturnes from './pages/website/Admin/AdminReturnes';
+import ReportsPage from './pages/website/Admin/AdminReports';
 
 
 export default function App() {
@@ -57,6 +59,8 @@ export default function App() {
                  <Route path="UserDetailsPage" element={<UserDetailsPage />} />
                  <Route path="/Admin/AdminInvestmentPage" element={<AdminInvestmentPage />} />
                  <Route path="/Admin/AdminFactories" element={<AdminFactories />} />
+                 <Route path="/Admin/AdminReturnes" element={<AdminReturnes/>} />
+                 <Route path="/Admin/ReportsPage" element={<ReportsPage/>} />
                 </Route>
 
                 {/* مسارات المستثمر */}
