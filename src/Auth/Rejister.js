@@ -40,7 +40,7 @@ function SignUpFormCustom() {
       setSuccessMessage('تم تسجيل انشاء الحساب بنجاح!');
       setcoler('#198754');
       setShowSuccess(true);
-
+console.log(form)
       setTimeout(() => {
         navigate('/login', { state: { openSidebar: true } });
       }, 3000);
