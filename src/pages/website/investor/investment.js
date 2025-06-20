@@ -86,7 +86,7 @@ export default function Investment  () {
                       <p>📉 أقل مساهمة: {property.minContribution}</p>
                     </div>
                   </Card.Text>
-                  <Button as={NavLink} to={"/card"}
+                  <Button as={NavLink} to={"/investor/Card"}
                     style={{
                       backgroundColor: accent,
                       borderColor: accent,

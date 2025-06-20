@@ -1,5 +1,7 @@
 // src/data/sidebarItems.js
 import { House, Lightning, GraphUp, Plus, ClockHistory, Wallet2 } from 'react-bootstrap-icons';
+import { FaChartPie, FaClipboardCheck, FaIndustry } from 'react-icons/fa';
+import { FiBriefcase, FiUsers } from 'react-icons/fi';
 
 // العناصر المشتركة بين جميع المستخدمين
 const commonItems = [
@@ -23,15 +25,31 @@ const commonItems = [
 // عناصر المدير
 const adminItems = [
   {
-    path: "/admin/dashboard",
-    name: "لوحة التحكم",
-    icon: <GraphUp size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+    path: "/Admin/AdminAccountsPage",
+    name: "إدارة الحسابات",
+    icon: <FiUsers  size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+   {
+    path: "/Admin/AdminInvestmentPage",
+    name: " عرض الفرص الأستثمارية",
+    icon: <FiBriefcase size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
   },
   {
-    path: "/admin/users",
-    name: "إدارة المستخدمين",
-    icon: null
-  }
+    path: "/Admin/AdminFactories",
+    name: "عرض  جميع المصانع",
+    icon: <FaIndustry size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/Admin/AdminReturnes",
+    name: "   الأستثمارات و العوائد",
+    icon: <FaChartPie size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/Admin/ReportsPage",
+    name: "  التقارير",
+    icon: <FaClipboardCheck size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+ 
 ];
 
 // عناصر المستثمر
