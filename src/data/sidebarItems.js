@@ -1,6 +1,6 @@
 // src/data/sidebarItems.js
 import { House, Lightning, GraphUp, Plus, ClockHistory, Wallet2 } from 'react-bootstrap-icons';
-import { FaChartPie, FaClipboardCheck, FaIndustry } from 'react-icons/fa';
+import { FaBullhorn, FaChartLine, FaChartPie, FaClipboardCheck, FaCoins, FaHandHoldingUsd, FaIndustry, FaMoneyBillWave, FaMoneyBillWaveAlt, FaRegLightbulb } from 'react-icons/fa';
 import { FiBriefcase, FiUsers } from 'react-icons/fi';
 
 // العناصر المشتركة بين جميع المستخدمين
@@ -73,7 +73,25 @@ const investorItems = [
     path: "/investor/transactions",
     name: "السجل المالي",
     icon: <ClockHistory size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/investor/TrackReturnes",
+    name: "   اختبار العوائد المالية تجربة",
+    icon: <FaMoneyBillWave size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/investor/InvestmentPortfolio",
+    name: "  حصصي الأستثمارية",
+    icon: <FaCoins size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/investor/MarketTrading",
+    name: " سوق  تداول الحصص ",
+    icon: <FaChartLine size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
   }
+
+
+  
 ];
 
 // عناصر صاحب المصنع
@@ -92,6 +110,11 @@ const factoryOwnerItems = [
     path: "/factory/registration",
     name: "إضافة مصنع",
     icon: <Plus size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/factory/MyFactoryes",
+    name: "المصانع المسجلة",
+    icon: <FaRegLightbulb size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
   }
   
 ];

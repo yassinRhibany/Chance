@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { Container, Form, Button, Card, Row, Col, Alert, Badge } from 'react-bootstrap';
-import { Building, FilePdf, CheckCircleFill, CurrencyDollar } from 'react-bootstrap-icons';
+import React, { useState, useEffect } from 'react';
+import { Container, Form, Button, Card, Row, Col, Badge, Spinner } from 'react-bootstrap';
+import { Building, FilePdf } from 'react-bootstrap-icons';
+import axios from 'axios';
+import { useAuth } from '../../../Context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Message from '../../../components/Message.js/Message';
 
-export default function FactoryRegistration () {
+export default function FactoryRegistration() {
   // الألوان المخصصة
   const primaryDark = '#1D1E22';
   const secondaryDark = '#393F4D';
@@ -11,49 +15,168 @@ export default function FactoryRegistration () {
 
   // حالة النموذج
   const [factoryData, setFactoryData] = useState({
-    factoryName: '',
-    location: {
-      city: '',
-      address: ''
-    },
-    category: '',
-    status: 'under_construction',
-    minInvestment: '',
-    feasibilityStudy: null,
-    additionalDocuments: []
+    name: '',
+    address: '',
+    category_id: '',
+    is_active: false,
+    feasibility_pdf: null
   });
 
-  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageColor, setMessageColor] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
   
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  // التأكد من وجود التوكن عند تحميل المكون
+  useEffect(() => {
+    if (!user?.token) {
+      setAuthError(true);
+      setMessage('يجب تسجيل الدخول أولاً للوصول إلى هذه الصفحة');
+      setMessageColor('#DC3545');
+      setShowMessage(true);
+    }
+  }, [user]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFactoryData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLocationChange = (e) => {
-    const { name, value } = e.target;
-    setFactoryData(prev => ({
-      ...prev,
-      location: { ...prev.location, [name]: value }
-    }));
-  };
-
-  const handleFileUpload = (e, fieldName) => {
+  const handleFileUpload = (e) => {
     setFactoryData(prev => ({ 
       ...prev, 
-      [fieldName]: e.target.files[0] 
+      feasibility_pdf: e.target.files[0] 
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('بيانات المصنع:', factoryData);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 5000);
+    
+    if (!user?.token) {
+      setMessage('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى');
+      setMessageColor('#DC3545');
+      setShowMessage(true);
+      setAuthError(true);
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('name', factoryData.name);
+      formData.append('address', factoryData.address);
+      formData.append('category_id', factoryData.category_id);
+      formData.append('is_active', factoryData.is_active ? '1' : '0');
+      if (factoryData.feasibility_pdf) {
+        formData.append('feasibility_pdf', factoryData.feasibility_pdf);
+      }
+
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/factories/store',
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      setMessage('تم تسجيل المصنع بنجاح! سيتم مراجعة البيانات وإعلامك قريباً');
+      setMessageColor('#198754');
+      setShowMessage(true);
+      
+      // إعادة تعيين النموذج بعد النجاح
+      setFactoryData({
+        name: '',
+        address: '',
+        category_id: '',
+        is_active: false,
+        feasibility_pdf: null
+      });
+      
+    } catch (err) {
+      console.error('خطأ في تسجيل المصنع:', err);
+      
+      if (err.response?.status === 401) {
+        setMessage('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى');
+        setMessageColor('#DC3545');
+        setAuthError(true);
+        logout();
+      } else {
+        setMessage(err.response?.data?.message || 'حدث خطأ أثناء تسجيل المصنع');
+        setMessageColor('#DC3545');
+      }
+      setShowMessage(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (authError) {
+    return (
+      <Container fluid className="py-5" style={{ backgroundColor: primaryDark, minHeight: '100vh' }}>
+        <Row className="justify-content-center">
+          <Col md={8} lg={6}>
+            <Card style={{ 
+              backgroundColor: secondaryDark, 
+              color: lightText,
+              border: `1px solid ${accent}`,
+              borderRadius: '15px'
+            }}>
+              <Card.Body className="text-center py-5">
+                <h4 style={{ color: accent }}>غير مصرح بالوصول</h4>
+                <p className="mt-3">{message}</p>
+                <Button 
+                  variant="warning" 
+                  onClick={() => navigate('/login')}
+                  style={{ 
+                    backgroundColor: accent, 
+                    color: primaryDark,
+                    fontWeight: 'bold',
+                    border: 'none',
+                    padding: '10px 20px',
+                    marginTop: '20px'
+                  }}
+                >
+                  الانتقال إلى صفحة تسجيل الدخول
+                </Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
 
   return (
     <Container fluid className="py-5" style={{ backgroundColor: primaryDark, minHeight: '100vh' }}>
+      {/* عرض رسالة النجاح أو الخطأ */}
+      {showMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          width: '100%',
+          maxWidth: '600px',
+          padding: '0 15px'
+        }}>
+          <Message
+            color={messageColor}
+            show={showMessage}
+            message={message}
+            onClose={() => setShowMessage(false)}
+          />
+        </div>
+      )}
+
       <Row className="justify-content-center">
         <Col md={8} lg={6}>
           <Card style={{ 
@@ -87,8 +210,8 @@ export default function FactoryRegistration () {
                     <Form.Label>اسم المصنع <span className="text-danger">*</span></Form.Label>
                     <Form.Control
                       type="text"
-                      name="factoryName"
-                      value={factoryData.factoryName}
+                      name="name"
+                      value={factoryData.name}
                       onChange={handleChange}
                       required
                       style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
@@ -98,88 +221,35 @@ export default function FactoryRegistration () {
                   <Form.Group className="mb-3">
                     <Form.Label>صنف المصنع <span className="text-danger">*</span></Form.Label>
                     <Form.Select
-                      name="category"
-                      value={factoryData.category}
+                      name="category_id"
+                      value={factoryData.category_id}
                       onChange={handleChange}
                       required
                       style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
                     >
                       <option value="">اختر تصنيف المصنع</option>
-                      <option value="صناعي">صناعي</option>
-                      <option value="تحويلي">تحويلي</option>
-                      <option value="إنتاجي">إنتاجي</option>
-                      <option value="خدمي">خدمي</option>
+                      <option value="1">صناعي</option>
+                      <option value="2">تحويلي</option>
+                      <option value="3">إنتاجي</option>
+                      <option value="4">خدمي</option>
                     </Form.Select>
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label>حالة المصنع <span className="text-danger">*</span></Form.Label>
+                    <Form.Label>حالة المصنع</Form.Label>
                     <div>
                       <Form.Check
-                        inline
-                        type="radio"
-                        label={
-                          <span>
-                            قيد الإنشاء <Badge bg="warning" text="dark">Under Construction</Badge>
-                          </span>
-                        }
-                        name="status"
-                        value="under_construction"
-                        checked={factoryData.status === 'under_construction'}
-                        onChange={handleChange}
-                      />
-                      <Form.Check
-                        inline
-                        type="radio"
-                        label={
-                          <span>
-                            يعمل حالياً <Badge bg="success">Operational</Badge>
-                          </span>
-                        }
-                        name="status"
-                        value="operational"
-                        checked={factoryData.status === 'operational'}
-                        onChange={handleChange}
+                        type="switch"
+                        id="is_active"
+                        label={factoryData.is_active ? "نشط" : "غير نشط"}
+                        name="is_active"
+                        checked={factoryData.is_active}
+                        onChange={(e) => setFactoryData(prev => ({ 
+                          ...prev, 
+                          is_active: e.target.checked 
+                        }))}
                       />
                     </div>
-                  </Form.Group>
-
-                     <Form.Group className="mb-3">
-                    <Form.Label>
-                      <CurrencyDollar className="me-2" />
-                      المبلغ المطلوب بالدولار الامريكي <span className="text-danger">*</span>
-                    </Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="minInvestment"
-                      value={factoryData.minInvestment}
-                      onChange={handleChange}
-                      required
-                      min="10000"
-                      step="1000"
-                      style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
-                    />
-                
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>
-                      <CurrencyDollar className="me-2" />
-                      الحد الأدنى للاستثمار ( دولار امريكي) <span className="text-danger">*</span>
-                    </Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="minInvestment"
-                      value={factoryData.minInvestment}
-                      onChange={handleChange}
-                      required
-                      min="10000"
-                      step="1000"
-                      style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
-                    />
-                    <Form.Text style={{ color: lightText }}>
-                      أقل مبلغ يمكن للمستثمر المساهمة به
-                    </Form.Text>
                   </Form.Group>
                 </div>
 
@@ -191,34 +261,18 @@ export default function FactoryRegistration () {
                 }}>
                   <h5 style={{ color: accent, marginBottom: '20px' }}>تفاصيل الموقع</h5>
                   
-                  <Row>
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>المدينة <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="city"
-                          value={factoryData.location.city}
-                          onChange={handleLocationChange}
-                          required
-                          style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
-                        />
-                      </Form.Group>
-                    </Col>
-
-                    <Col md={6}>
-                      <Form.Group className="mb-3">
-                        <Form.Label>العنوان التفصيلي</Form.Label>
-                        <Form.Control
-                          type="text"
-                          name="address"
-                          value={factoryData.location.address}
-                          onChange={handleLocationChange}
-                          style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
-                        />
-                      </Form.Group>
-                    </Col>
-                  </Row>
+                  <Form.Group className="mb-3">
+                    <Form.Label>العنوان التفصيلي <span className="text-danger">*</span></Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      name="address"
+                      value={factoryData.address}
+                      onChange={handleChange}
+                      required
+                      style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
+                    />
+                  </Form.Group>
                 </div>
 
                 {/* القسم الثالث: المستندات */}
@@ -237,28 +291,13 @@ export default function FactoryRegistration () {
                     <Form.Control
                       type="file"
                       accept=".pdf"
-                      onChange={(e) => handleFileUpload(e, 'feasibilityStudy')}
+                      onChange={handleFileUpload}
                       required
                       style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
                     />
-                    {factoryData.feasibilityStudy && (
+                    {factoryData.feasibility_pdf && (
                       <Form.Text style={{ color: lightText }}>
-                        تم اختيار: {factoryData.feasibilityStudy.name}
-                      </Form.Text>
-                    )}
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>مستندات إضافية (اختياري)</Form.Label>
-                    <Form.Control
-                      type="file"
-                      multiple
-                      onChange={(e) => handleFileUpload(e, 'additionalDocuments')}
-                      style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
-                    />
-                    {factoryData.additionalDocuments.length > 0 && (
-                      <Form.Text style={{ color: lightText }}>
-                        {factoryData.additionalDocuments.length} ملف(ات) مرفقة
+                        تم اختيار: {factoryData.feasibility_pdf.name}
                       </Form.Text>
                     )}
                   </Form.Group>
@@ -268,16 +307,32 @@ export default function FactoryRegistration () {
                   <Button 
                     variant="warning" 
                     type="submit"
+                    disabled={isLoading}
                     style={{ 
                       backgroundColor: accent, 
                       color: primaryDark,
                       fontWeight: 'bold',
                       border: 'none',
                       padding: '10px',
-                      fontSize: '1.1rem'
+                      fontSize: '1.1rem',
+                      height: '50px'
                     }}
                   >
-                    حفظ بيانات المصنع
+                    {isLoading ? (
+                      <>
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                          className="me-2"
+                        />
+                        جاري الحفظ...
+                      </>
+                    ) : (
+                      'حفظ بيانات المصنع'
+                    )}
                   </Button>
                 </div>
               </Form>
@@ -285,40 +340,6 @@ export default function FactoryRegistration () {
           </Card>
         </Col>
       </Row>
-
-      {/* رسالة النجاح */}
-      {success && (
-        <div style={{
-          position: 'fixed',
-          bottom: '20px',
-          left: '20px',
-          zIndex: 9999,
-          maxWidth: '400px'
-        }}>
-          <Alert 
-            variant="success" 
-            onClose={() => setSuccess(false)} 
-            dismissible
-            style={{
-              backgroundColor: '#198754',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}
-          >
-            <CheckCircleFill size={24} />
-            <div>
-              <h6 style={{ marginBottom: 0 }}>تم حفظ بيانات المصنع بنجاح!</h6>
-              <small>سيتم مراجعة البيانات وإعلامك قريباً</small>
-            </div>
-          </Alert>
-        </div>
-      )}
     </Container>
   );
-};
-
+}

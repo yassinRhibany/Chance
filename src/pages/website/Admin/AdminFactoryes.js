@@ -1,99 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, Row, Col, Card, Table, Form, Button, 
-  Badge, InputGroup, Modal, Spinner
+  Badge, InputGroup, Modal, Spinner, Alert
 } from 'react-bootstrap';
 import { 
   FaIndustry, FaSearch, FaEdit, FaTrash, FaFilePdf, 
-  FaFilter, FaSync, FaExclamationTriangle
+  FaFilter, FaSync, FaExclamationTriangle, FaPlus, FaTimes
 } from 'react-icons/fa';
+import axios from 'axios';
 
 const FactoryManagement = () => {
-  // أنواع المصانع
-  const factoryCategories = [
-    'أغذية ومشروبات',
-    'منسوجات وملابس',
-    'أثاث',
-    'بلاستيك',
-    'كيماويات',
-    'ورق وطباعة',
-    'معدات وآلات',
-    'إلكترونيات',
-    'أدوية',
-    'مواد بناء',
-    'أخرى'
-  ];
-
-  // بيانات المصانع المثالبة
-  const [factories, setFactories] = useState([
-    {
-      id: 'FAC-001',
-      name: 'مصنع الأثاث الحديث',
-      category: 'أثاث',
-      owner: 'محمد أحمد',
-      location: 'الرياض، حي السليمانية',
-      status: 'نشط',
-      registrationDate: '2023-01-15',
-      products: 'أثاث منزلي',
-      employees: 45,
-      contact: 'info@modern-furniture.com',
-      feasibilityStudy: '/feasibility/fac-001.pdf'
-    },
-    {
-      id: 'FAC-002',
-      name: 'مصنع البلاستيك المتكامل',
-      category: 'بلاستيك',
-      owner: 'سارة عبدالله',
-      location: 'جدة، حي الصفا',
-      status: 'معلق',
-      registrationDate: '2023-02-10',
-      products: 'منتجات بلاستيكية',
-      employees: 32,
-      contact: 'contact@integrated-plastic.com',
-      feasibilityStudy: '/feasibility/fac-002.pdf'
-    },
-    {
-      id: 'FAC-003',
-      name: 'مصنع الورق الصحي',
-      category: 'ورق وطباعة',
-      owner: 'خالد سعيد',
-      location: 'الدمام، حي الراكة',
-      status: 'نشط',
-      registrationDate: '2022-11-22',
-      products: 'منتجات ورقية',
-      employees: 78,
-      contact: 'info@sanitary-paper.com',
-      feasibilityStudy: '/feasibility/fac-003.pdf'
-    },
-    {
-      id: 'FAC-004',
-      name: 'مصنع الأغذية المعلبة',
-      category: 'أغذية ومشروبات',
-      owner: 'نورة عبدالرحمن',
-      location: 'الخبر، حي الجسر',
-      status: 'معطل',
-      registrationDate: '2023-03-05',
-      products: 'أغذية معلبة',
-      employees: 56,
-      contact: 'support@canned-food.com',
-      feasibilityStudy: '/feasibility/fac-004.pdf'
-    },
-    {
-      id: 'FAC-005',
-      name: 'مصنع الألمنيوم الوطني',
-      category: 'معدات وآلات',
-      owner: 'علي حسن',
-      location: 'الرياض، حي النخيل',
-      status: 'نشط',
-      registrationDate: '2022-09-18',
-      products: 'منتجات ألمنيوم',
-      employees: 102,
-      contact: 'contact@national-aluminum.com',
-      feasibilityStudy: '/feasibility/fac-005.pdf'
-    }
-  ]);
-
-  // متغيرات الحالة
+  // حالات التطبيق
+  const [factoryCategories, setFactoryCategories] = useState([]);
+  const [factories, setFactories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('الكل');
   const [categoryFilter, setCategoryFilter] = useState('الكل');
@@ -101,12 +20,58 @@ const FactoryManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFeasibilityModal, setShowFeasibilityModal] = useState(false);
   const [selectedFactory, setSelectedFactory] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // محاكاة تحميل البيانات
-  const simulateLoading = () => {
+  // حالات إدارة الفئات
+  const [newCategory, setNewCategory] = useState('');
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [categoryError, setCategoryError] = useState('');
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
+  
+  // عنوان API الأساسي
+  const API_URL = 'http://127.0.0.1:8000/api';
+  
+  // جلب البيانات عند تحميل المكون
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // دالة لجلب البيانات من API
+  const fetchData = async () => {
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 800);
+    setError(null);
+    
+    try {
+      // جلب الفئات
+      const categoriesResponse = await axios.get(`${API_URL}/categories/index`);
+      setFactoryCategories(categoriesResponse.data);
+      
+      // جلب المصانع من API الجديد
+      const factoriesResponse = await axios.get(`${API_URL}/factories/getAllFactories`);
+      
+      // معالجة البيانات للتأكد من عدم وجود كائنات متداخلة
+      const processedFactories = factoriesResponse.data.map(factory => ({
+        id: factory.id?.toString() || 'غير محدد',
+        name: factory.name?.toString() || 'بدون اسم',
+        category: factory.category?.toString() || 'أخرى',
+        location: factory.location?.toString() || 'غير محدد',
+        status: factory.status?.toString() || 'معلق',
+        owner: factory.owner?.toString() || 'غير محدد',
+        contact: factory.contact?.toString() || 'غير متوفر',
+        products: factory.products?.toString() || 'غير محدد',
+        feasibilityStudy: factory.feasibilityStudy?.toString() || '',
+        registrationDate: factory.registrationDate?.toString() || 'غير محدد'
+      }));
+      
+      setFactories(processedFactories);
+    } catch (err) {
+      setError('فشل في جلب البيانات. يرجى المحاولة مرة أخرى.');
+      console.error('Error fetching data:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // تصفية المصانع
@@ -170,21 +135,151 @@ const FactoryManagement = () => {
   };
 
   // حفظ التعديلات
-  const saveChanges = () => {
-    const updatedFactories = factories.map(factory => 
-      factory.id === selectedFactory.id ? selectedFactory : factory
-    );
-    setFactories(updatedFactories);
-    setShowEditModal(false);
-    simulateLoading();
+  const saveChanges = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.put(
+        `${API_URL}/factories/updateFactory/${selectedFactory.id}`,
+        selectedFactory
+      );
+      
+      const updatedFactories = factories.map(factory => 
+        factory.id === selectedFactory.id ? {
+          ...response.data,
+          // معالجة البيانات المرتجعة
+          id: response.data.id?.toString() || factory.id,
+          name: response.data.name?.toString() || factory.name,
+          category: response.data.category?.toString() || factory.category,
+          status: response.data.status?.toString() || factory.status,
+          location: response.data.location?.toString() || factory.location,
+          owner: response.data.owner?.toString() || factory.owner,
+          contact: response.data.contact?.toString() || factory.contact,
+          products: response.data.products?.toString() || factory.products,
+          feasibilityStudy: response.data.feasibilityStudy?.toString() || factory.feasibilityStudy,
+          registrationDate: response.data.registrationDate?.toString() || factory.registrationDate
+        } : factory
+      );
+      
+      setFactories(updatedFactories);
+      setShowEditModal(false);
+    } catch (err) {
+      setError('فشل في تحديث بيانات المصنع');
+      console.error('Error updating factory:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // حذف المصنع
-  const deleteFactory = () => {
-    const updatedFactories = factories.filter(factory => factory.id !== selectedFactory.id);
-    setFactories(updatedFactories);
-    setShowDeleteModal(false);
-    simulateLoading();
+  const deleteFactory = async () => {
+    try {
+      setIsLoading(true);
+      await axios.delete(`${API_URL}/factories/deleteFactory/${selectedFactory.id}`);
+      
+      const updatedFactories = factories.filter(factory => factory.id !== selectedFactory.id);
+      setFactories(updatedFactories);
+      setShowDeleteModal(false);
+    } catch (err) {
+      setError('فشل في حذف المصنع');
+      console.error('Error deleting factory:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // إضافة صنف جديد
+  const addNewCategory = async () => {
+    if (!newCategory.trim()) {
+      setCategoryError('يجب إدخال اسم الصنف');
+      return;
+    }
+    
+    if (factoryCategories.some(cat => cat.name === newCategory)) {
+      setCategoryError('هذا الصنف موجود بالفعل');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      const response = await axios.post(`${API_URL}/categories/store`, {
+        name: newCategory
+      });
+      
+      setFactoryCategories([...factoryCategories, {
+        ...response.data,
+        name: response.data.name?.toString() || newCategory
+      }]);
+      setNewCategory('');
+      setShowAddCategoryModal(false);
+      setCategoryError('');
+    } catch (err) {
+      setCategoryError('فشل في إضافة الصنف الجديد');
+      console.error('Error adding category:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // حذف صنف
+  const deleteCategory = async () => {
+    if (!categoryToDelete) return;
+    
+    try {
+      setIsLoading(true);
+      await axios.delete(`${API_URL}/categories/destroy/${categoryToDelete.id}`);
+      
+      setFactoryCategories(factoryCategories.filter(cat => cat.id !== categoryToDelete.id));
+      setCategoryToDelete(null);
+      setShowDeleteCategoryModal(false);
+      
+      // تحديث المصانع التي تستخدم هذا الصنف
+      const updatedFactories = factories.map(factory => {
+        if (factory.category === categoryToDelete.name) {
+          return { ...factory, category: 'أخرى' };
+        }
+        return factory;
+      });
+      setFactories(updatedFactories);
+    } catch (err) {
+      setError('فشل في حذف الصنف');
+      console.error('Error deleting category:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // عرض قائمة الفئات مع إمكانية الحذف
+  const renderCategoriesList = () => {
+    return (
+      <div className="mt-4">
+        <h6>الأصناف الحالية:</h6>
+        <div className="d-flex flex-wrap gap-2">
+          {factoryCategories.map((category) => (
+            <Badge 
+              key={category.id}
+              pill 
+              style={{ 
+                backgroundColor: getCategoryColor(category.name),
+                fontSize: '0.9rem',
+                cursor: 'pointer'
+              }}
+              className="d-flex align-items-center"
+            >
+              {category.name?.toString() || 'صنف غير معروف'}
+              <FaTimes 
+                size={12} 
+                className="ms-2" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCategoryToDelete(category);
+                  setShowDeleteCategoryModal(true);
+                }}
+              />
+            </Badge>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -194,10 +289,18 @@ const FactoryManagement = () => {
       minHeight: '100vh',
       paddingBottom: '2rem'
     }}>
-      {/* شريط التنقل العلوي */}
-    
-
       <Container fluid className="py-4">
+        {/* رسالة خطأ إذا حدثت مشكلة في جلب البيانات */}
+        {error && (
+          <Alert variant="danger" className="mb-4">
+            <FaExclamationTriangle className="me-2" />
+            {error}
+            <Button variant="outline-light" size="sm" className="ms-3" onClick={fetchData}>
+              <FaSync /> إعادة المحاولة
+            </Button>
+          </Alert>
+        )}
+        
         {/* العنوان الرئيسي */}
         <Row className="mb-4 align-items-center">
           <Col>
@@ -298,7 +401,7 @@ const FactoryManagement = () => {
             </Card>
           </Col>
         </Row>
-        
+
         {/* بطاقة قائمة المصانع */}
         <Card style={{ 
           backgroundColor: '#1e1e1e', 
@@ -317,7 +420,7 @@ const FactoryManagement = () => {
               <FaIndustry className="me-2 text-warning" /> تفاصيل المصانع
             </h5>
             <div>
-              <Button variant="outline-secondary" size="sm" className="me-2" onClick={simulateLoading}>
+              <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchData}>
                 <FaSync /> تحديث البيانات
               </Button>
             </div>
@@ -366,20 +469,29 @@ const FactoryManagement = () => {
               </Col>
               
               <Col md={3}>
-                <Form.Select 
-                  value={categoryFilter} 
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  style={{ 
-                    backgroundColor: '#333', 
-                    border: '1px solid #555',
-                    color: '#e0e0e0'
-                  }}
-                >
-                  <option value="الكل">كل الأصناف</option>
-                  {factoryCategories.map((category, index) => (
-                    <option key={index} value={category}>{category}</option>
-                  ))}
-                </Form.Select>
+                <InputGroup>
+                  <Form.Select 
+                    value={categoryFilter} 
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    style={{ 
+                      backgroundColor: '#333', 
+                      border: '1px solid #555',
+                      color: '#e0e0e0'
+                    }}
+                  >
+                    <option value="الكل">كل الأصناف</option>
+                    {factoryCategories.map((category, index) => (
+                      <option key={index} value={category.name}>{category.name?.toString() || 'صنف غير معروف'}</option>
+                    ))}
+                  </Form.Select>
+                  <Button 
+                    variant="outline-success" 
+                    onClick={() => setShowAddCategoryModal(true)}
+                    style={{ borderColor: '#555' }}
+                  >
+                    <FaPlus />
+                  </Button>
+                </InputGroup>
               </Col>
             </Row>
             
@@ -509,7 +621,7 @@ const FactoryManagement = () => {
                     <Form.Label>اسم المصنع</Form.Label>
                     <Form.Control
                       type="text"
-                      value={selectedFactory.name}
+                      value={selectedFactory.name || ''}
                       onChange={(e) => setSelectedFactory({...selectedFactory, name: e.target.value})}
                       className="bg-dark text-light"
                     />
@@ -518,12 +630,12 @@ const FactoryManagement = () => {
                   <Form.Group controlId="editCategory" className="mb-3">
                     <Form.Label>صنف المصنع</Form.Label>
                     <Form.Select
-                      value={selectedFactory.category}
+                      value={selectedFactory.category || ''}
                       onChange={(e) => setSelectedFactory({...selectedFactory, category: e.target.value})}
                       className="bg-dark text-light"
                     >
                       {factoryCategories.map((category, index) => (
-                        <option key={index} value={category}>{category}</option>
+                        <option key={index} value={category.name}>{category.name?.toString() || 'صنف غير معروف'}</option>
                       ))}
                     </Form.Select>
                   </Form.Group>
@@ -532,7 +644,7 @@ const FactoryManagement = () => {
                     <Form.Label>المالك</Form.Label>
                     <Form.Control
                       type="text"
-                      value={selectedFactory.owner}
+                      value={selectedFactory.owner || ''}
                       onChange={(e) => setSelectedFactory({...selectedFactory, owner: e.target.value})}
                       className="bg-dark text-light"
                     />
@@ -543,7 +655,7 @@ const FactoryManagement = () => {
                   <Form.Group controlId="editStatus" className="mb-3">
                     <Form.Label>حالة المصنع</Form.Label>
                     <Form.Select
-                      value={selectedFactory.status}
+                      value={selectedFactory.status || 'معلق'}
                       onChange={(e) => setSelectedFactory({...selectedFactory, status: e.target.value})}
                       className="bg-dark text-light"
                     >
@@ -557,7 +669,7 @@ const FactoryManagement = () => {
                     <Form.Label>الموقع</Form.Label>
                     <Form.Control
                       type="text"
-                      value={selectedFactory.location}
+                      value={selectedFactory.location || ''}
                       onChange={(e) => setSelectedFactory({...selectedFactory, location: e.target.value})}
                       className="bg-dark text-light"
                     />
@@ -567,7 +679,7 @@ const FactoryManagement = () => {
                     <Form.Label>جهة الاتصال</Form.Label>
                     <Form.Control
                       type="text"
-                      value={selectedFactory.contact}
+                      value={selectedFactory.contact || ''}
                       onChange={(e) => setSelectedFactory({...selectedFactory, contact: e.target.value})}
                       className="bg-dark text-light"
                     />
@@ -580,7 +692,7 @@ const FactoryManagement = () => {
                     <Form.Control
                       as="textarea"
                       rows={2}
-                      value={selectedFactory.products}
+                      value={selectedFactory.products || ''}
                       onChange={(e) => setSelectedFactory({...selectedFactory, products: e.target.value})}
                       className="bg-dark text-light"
                     />
@@ -593,7 +705,7 @@ const FactoryManagement = () => {
                     <InputGroup>
                       <Form.Control
                         type="text"
-                        value={selectedFactory.feasibilityStudy}
+                        value={selectedFactory.feasibilityStudy || ''}
                         onChange={(e) => setSelectedFactory({...selectedFactory, feasibilityStudy: e.target.value})}
                         className="bg-dark text-light"
                         placeholder="رابط ملف PDF"
@@ -787,6 +899,111 @@ const FactoryManagement = () => {
               إغلاق
             </Button>
           </Modal.Footer>
+        </Modal>
+        
+        {/* نافذة إضافة صنف جديد */}
+        <Modal 
+          show={showAddCategoryModal} 
+          onHide={() => {
+            setShowAddCategoryModal(false);
+            setCategoryError('');
+          }} 
+          centered
+          contentClassName="bg-dark text-light"
+        >
+          <Modal.Header 
+            closeButton 
+            closeVariant="white"
+            style={{ backgroundColor: "#1a1a1a" }}
+          >
+            <Modal.Title className="d-flex align-items-center">
+              <FaPlus className="me-2 text-success" /> إضافة صنف جديد
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group controlId="newCategory" className="mb-3">
+              <Form.Label>اسم الصنف الجديد</Form.Label>
+              <Form.Control
+                type="text"
+                value={newCategory}
+                onChange={(e) => {
+                  setNewCategory(e.target.value);
+                  setCategoryError('');
+                }}
+                className="bg-dark text-light"
+                placeholder="أدخل اسم الصنف الجديد"
+              />
+              {categoryError && <Alert variant="danger" className="mt-2">{categoryError}</Alert>}
+            </Form.Group>
+            
+            {renderCategoriesList()}
+          </Modal.Body>
+          <Modal.Footer style={{ backgroundColor: "#1a1a1a" }}>
+            <Button variant="outline-secondary" onClick={() => {
+              setShowAddCategoryModal(false);
+              setCategoryError('');
+            }}>
+              إلغاء
+            </Button>
+            <Button variant="success" onClick={addNewCategory}>
+              <FaPlus className="me-1" /> إضافة الصنف
+            </Button>
+          </Modal.Footer>
+        </Modal>
+        
+        {/* نافذة تأكيد حذف الصنف */}
+        <Modal 
+          show={showDeleteCategoryModal} 
+          onHide={() => setShowDeleteCategoryModal(false)} 
+          centered
+          contentClassName="bg-dark text-light"
+        >
+          <Modal.Header 
+            closeButton 
+            closeVariant="white"
+            style={{ backgroundColor: "#1a1a1a" }}
+          >
+            <Modal.Title className="d-flex align-items-center">
+              <FaExclamationTriangle className="me-2 text-danger" /> تأكيد حذف الصنف
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="text-center">
+            {categoryToDelete && (
+              <>
+                <div className="mb-4">
+                  <FaExclamationTriangle size={48} className="text-danger mb-3" />
+                  <h4>هل أنت متأكد من حذف هذا الصنف؟</h4>
+                  <p className="text-muted">هذا الإجراء لا يمكن التراجع عنه</p>
+                </div>
+                
+                <div className="border rounded p-4 mb-4" style={{ backgroundColor: '#1e1e1e' }}>
+                  <Row className="mb-3">
+                    <Col md={12} className="text-center">
+                      <Badge 
+                        pill 
+                        style={{ 
+                          backgroundColor: getCategoryColor(categoryToDelete.name),
+                          fontSize: '1.2rem',
+                          padding: '8px 16px'
+                        }}
+                      >
+                        {categoryToDelete.name}
+                      </Badge>
+                    </Col>
+                  </Row>
+                </div>
+                
+                <div className="d-flex justify-content-center gap-3">
+                  <Button variant="outline-secondary" size="lg" onClick={() => setShowDeleteCategoryModal(false)}>
+                    إلغاء
+                  </Button>
+                  <Button variant="danger" size="lg" onClick={deleteCategory}>
+                    <FaTrash className="me-1" /> تأكيد الحذف
+                  </Button>
+                </div>
+              </>
+            )}
+          </Modal.Body>
         </Modal>
       </Container>
     </div>

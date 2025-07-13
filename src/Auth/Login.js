@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useAuth } from '../Context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../components/loadscreen/Loading'
-import Message from '../components/messag.js/message'
+import Message from '../components/Message.js/Message'
 import { useSidebar } from '../Context/SidebarContext';
 function LoginFormCustom() {
   const [form, setForm] = useState({

@@ -3,7 +3,7 @@ import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { baseURL, REGISTER } from '../Api/Api';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Message from '../components/messag.js/message'
+import Message from '../components/Message.js/Message'
 import { useSidebar } from '../Context/SidebarContext';
 import Loading from '../components/loadscreen/Loading'
 function SignUpFormCustom() {
@@ -40,7 +40,7 @@ function SignUpFormCustom() {
       setSuccessMessage('تم تسجيل انشاء الحساب بنجاح!');
       setcoler('#198754');
       setShowSuccess(true);
-console.log(form)
+
       setTimeout(() => {
         navigate('/login', { state: { openSidebar: true } });
       }, 3000);

@@ -7,7 +7,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import ProfileIcon from '../../ProfileIcon/ProfileIcon';
 import { useSidebar } from '../../../Context/SidebarContext';
 import { useAuth } from '../../../Context/AuthContext';
-import Message from '../../messag.js/message';
+import Message from '../../Message.js/Message';
 export default function Header() {
     const { isSidebarOpen, toggleSidebar, setIsSidebarOpen } = useSidebar();
     const { user, setUser } = useAuth();

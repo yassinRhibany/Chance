@@ -29,6 +29,11 @@ import AdminInvestmentPage from './pages/website/Admin/AdminInvestmentPage';
 import AdminFactories from './pages/website/Admin/AdminFactoryes';
 import AdminReturnes from './pages/website/Admin/AdminReturnes';
 import ReportsPage from './pages/website/Admin/AdminReports';
+import TrackReturnes from './pages/website/investor/TrackReturnes';
+import InvestorTradingPlatform from './pages/website/investor/BuyAndSell';
+import InvestmentPortfolio from './pages/website/investor/BuyAndSell';
+import MarketTrading from './pages/website/investor/MarketTrading';
+import MyFactoryes from './pages/website/FactoryOwner/MyFactoryes';
 
 
 export default function App() {
@@ -70,16 +75,24 @@ export default function App() {
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
                   <Route path="/investor/Card" element={<Card />} />
+                  <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
 
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />
+                  <Route path="/investor/TrackReturnes" element={<TrackReturnes/>} />
+                  <Route path="/investor/InvestmentPortfolio" element={<InvestmentPortfolio/>} />
+                  <Route path="/investor/MarketTrading" element={<MarketTrading/>} />
+
+                  
+
                 </Route>
 
 
                 {/* مسارات صاحب المصنع */}
                 <Route element={<FactoryLayout />}>
                   <Route path="/factory/registration" element={<FactoryRegistration />} />
-                  <Route path="/factory/profile" element={<CompleteUserProfile />} />
+                  <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
                   <Route path="/factory/wallet" element={<Wallet />} />
+                  <Route path="/factory/MyFactoryes" element={<MyFactoryes />} />
                 </Route>
 
 

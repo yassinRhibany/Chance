@@ -49,7 +49,7 @@ export default function Investment  () {
     }}>
       <Container>
         <h1 className="text-center mb-5" style={{ color: accent }}>
-          العقارات المتاحة للاستثمار
+           فرص استثمارية   
         </h1>
         
         <Row xs={1} md={2} lg={3} className="g-4">
