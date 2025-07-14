@@ -64,7 +64,7 @@ const FactoryManagement = () => {
         feasibilityStudy: factory.feasibilityStudy?.toString() || '',
         registrationDate: factory.registrationDate?.toString() || 'غير محدد'
       }));
-      
+      console.log(factoriesResponse.data);
       setFactories(processedFactories);
     } catch (err) {
       setError('فشل في جلب البيانات. يرجى المحاولة مرة أخرى.');

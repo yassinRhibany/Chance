@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Card, Row, Col, Badge, Spinner } from 'react-bootstrap';
+import { Container, Form, Button, Card, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { Building, FilePdf } from 'react-bootstrap-icons';
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
@@ -22,7 +22,9 @@ export default function FactoryRegistration() {
     feasibility_pdf: null
   });
 
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
   const [authError, setAuthError] = useState(false);
   const [message, setMessage] = useState('');
   const [messageColor, setMessageColor] = useState('');
@@ -31,13 +33,57 @@ export default function FactoryRegistration() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  // التأكد من وجود التوكن عند تحميل المكون
+  // جلب تصنيفات المصانع من API
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const response = await axios.get(
+        'http://127.0.0.1:8000/api/categories/index',
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+
+        }
+      );
+      // تحقق من بنية الاستجابة
+      if (response.data && Array.isArray(response.data)) {
+        setCategories(response.data);
+      } else {
+        console.error('هيكل البيانات غير متوقع:', response.data);
+        setMessage('هيكل البيانات غير متوقع من السيرفر');
+        setMessageColor('#DC3545');
+        setShowMessage(true);
+      }
+    } catch (err) {
+      console.error('خطأ في جلب التصنيفات:', err);
+      setMessage('حدث خطأ أثناء جلب تصنيفات المصانع');
+      setMessageColor('#DC3545');
+      setShowMessage(true);
+      
+      // تسجيل تفاصيل الخطأ
+      if (err.response) {
+        console.error('تفاصيل الخطأ:', {
+          status: err.response.status,
+          data: err.response.data,
+          headers: err.response.headers
+        });
+      }
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  // جلب التصنيفات عند تحميل المكون
   useEffect(() => {
     if (!user?.token) {
       setAuthError(true);
       setMessage('يجب تسجيل الدخول أولاً للوصول إلى هذه الصفحة');
       setMessageColor('#DC3545');
       setShowMessage(true);
+    } else {
+      fetchCategories();
     }
   }, [user]);
 
@@ -100,6 +146,8 @@ export default function FactoryRegistration() {
         feasibility_pdf: null
       });
       
+      // إعادة جلب التصنيفات بعد الإرسال الناجح
+      fetchCategories();
     } catch (err) {
       console.error('خطأ في تسجيل المصنع:', err);
       
@@ -220,19 +268,31 @@ export default function FactoryRegistration() {
 
                   <Form.Group className="mb-3">
                     <Form.Label>صنف المصنع <span className="text-danger">*</span></Form.Label>
-                    <Form.Select
-                      name="category_id"
-                      value={factoryData.category_id}
-                      onChange={handleChange}
-                      required
-                      style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
-                    >
-                      <option value="">اختر تصنيف المصنع</option>
-                      <option value="1">صناعي</option>
-                      <option value="2">تحويلي</option>
-                      <option value="3">إنتاجي</option>
-                      <option value="4">خدمي</option>
-                    </Form.Select>
+                    {loadingCategories ? (
+                      <div className="d-flex align-items-center">
+                        <Spinner animation="border" size="sm" className="me-2" />
+                        <span>جاري تحميل التصنيفات...</span>
+                      </div>
+                    ) : categories.length > 0 ? (
+                      <Form.Select
+                        name="category_id"
+                        value={factoryData.category_id}
+                        onChange={handleChange}
+                        required
+                        style={{ backgroundColor: secondaryDark, color: lightText, borderColor: accent }}
+                      >
+                        <option value="">اختر تصنيف المصنع</option>
+                        {categories.map(category => (
+                          <option key={category.id} value={category.id}>
+                            {category.name || 'تصنيف بدون اسم'}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    ) : (
+                      <Alert variant="warning" className="mt-2">
+                        لا توجد تصنيفات متاحة. يرجى المحاولة لاحقاً أو التواصل مع الدعم الفني.
+                      </Alert>
+                    )}
                   </Form.Group>
 
                   <Form.Group className="mb-3">
@@ -307,7 +367,7 @@ export default function FactoryRegistration() {
                   <Button 
                     variant="warning" 
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || loadingCategories || categories.length === 0}
                     style={{ 
                       backgroundColor: accent, 
                       color: primaryDark,

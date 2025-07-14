@@ -65,6 +65,7 @@ const MyFactories = () => {
        
         }
       );
+    console.log(response.data);
        
         // معالجة الاستجابة لضمان الحصول على مصفوفة
         let factoriesData = [];
@@ -89,10 +90,10 @@ const MyFactories = () => {
           category: factory.category?.toString() || 'بدون تصنيف',
           status: factory.status?.toString() || 'غير محدد',
           requiredAmount: Number(factory.requiredAmount) || 0,
-          location: factory.location?.toString() || 'غير محدد',
+          location: factory.address?.toString() || 'غير محدد',
           description: factory.description?.toString() || 'لا يوجد وصف',
           progress: Number(factory.progress) || 0,
-          feasibilityStudy: factory.feasibilityStudy?.toString() || 'لا يوجد ملف',
+          feasibilityStudy: factory.feasibility_pdf?.toString() || 'لا يوجد ملف',
           registeredDate: formatDateForDisplay(factory.registeredDate)
         }));
         
@@ -202,7 +203,7 @@ const MyFactories = () => {
             category: updatedFactory.category?.toString() || '',
             status: updatedFactory.status?.toString() || '',
             requiredAmount: Number(updatedFactory.requiredAmount) || 0,
-            location: updatedFactory.location?.toString() || '',
+            location: updatedFactory.address?.toString() || '',
             description: updatedFactory.description?.toString() || '',
             progress: Number(updatedFactory.progress) || 0,
             feasibilityStudy: updatedFactory.feasibilityStudy?.toString() || '',
@@ -471,13 +472,16 @@ const MyFactories = () => {
                     <div>
                       <Card.Title className="fw-bold mb-1 text-white">{factory.name}</Card.Title>
                       <div className="d-flex flex-wrap gap-2 mb-2">
-                        <Badge bg="secondary" className="fs-6">{factory.category}</Badge>
+                        {/* <Badge bg="secondary" className="fs-6">{factory.category}</Badge> */}
                         <Badge bg={getStatusBadge(factory.status)} className="fs-6">
                           {factory.status}
                         </Badge>
                       </div>
                     </div>
-                    <div className="d-flex">
+                    {/* ////////////////////////// */}
+
+                  {!factory.status=="pending" ? (""):(
+                     <div className="d-flex">
                       <Button 
                         variant="outline-primary" 
                         size="sm" 
@@ -494,28 +498,32 @@ const MyFactories = () => {
                         <FaTrash />
                       </Button>
                     </div>
+                  )}
+                 
+                    {/* /////////////////////// */}
                   </div>
                   
-                  <div className="mb-3">
+                  {/* <div className="mb-3">
                     <p className="text-light small mb-2">{factory.description}</p>
-                  </div>
+                  </div> */}
                   
-                  <div className="d-flex align-items-center mb-3">
+                  {/* <div className="d-flex align-items-center mb-3">
                     <ProgressBar 
                       now={factory.progress} 
                       variant={factory.progress === 100 ? 'success' : 'primary'} 
                       style={{ height: '8px', width: '100%' }} 
                     />
                     <span className="ms-2 fw-bold text-white">{factory.progress}%</span>
-                  </div>
+                  </div> */}
                   
                   <div className="factory-details mb-3">
-                    <div className="d-flex justify-content-between mb-2">
+
+                    {/* <div className="d-flex justify-content-between mb-2">
                       <div className="text-light">
                         <FaDollarSign className="me-1" /> المبلغ المطلوب
                       </div>
                       <div className="fw-bold text-white">{formatCurrency(factory.requiredAmount)}</div>
-                    </div>
+                    </div> */}
                     
                     <div className="d-flex mb-2">
                       <div className="text-light me-3">
