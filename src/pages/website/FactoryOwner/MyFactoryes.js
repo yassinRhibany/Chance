@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Modal, Form, Badge, InputGroup, Spinner } from 'react-bootstrap';
-import { FaBuilding, FaEdit, FaTrash, FaMapMarkerAlt, FaFilePdf, FaSearch, FaPlus, FaInfoCircle } from 'react-icons/fa';
+import { Container, Row, Col, Card, Button, Modal, Form, Badge, InputGroup, Spinner, Dropdown } from 'react-bootstrap';
+import { FaBuilding, FaEdit, FaTrash, FaMapMarkerAlt, FaFilePdf, FaSearch, FaPlus, FaInfoCircle, FaCheckCircle, FaTimesCircle, FaTags } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
@@ -12,11 +12,16 @@ const MyFactories = () => {
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [currentFactory, setCurrentFactory] = useState({
     name: '',
     address: '',
-    feasibility_pdf: null
+    feasibility_pdf: null,
+    status: ''
   });
+  const [newStatus, setNewStatus] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('الكل');
   const [pdfFile, setPdfFile] = useState(null);
@@ -70,10 +75,11 @@ const MyFactories = () => {
         const processedFactories = (factoriesData || []).map(factory => ({
           id: factory.id?.toString() || '',
           name: factory.name?.toString() || 'بدون اسم',
-          status: factory.status?.toString() || 'غير محدد',
+          status: factory.status?.toString() || 'pending',
           address: factory.address?.toString() || 'غير محدد',
           feasibility_pdf: factory.feasibility_pdf || null,
-          registeredDate: formatDateForDisplay(factory.registeredDate)
+          registeredDate: formatDateForDisplay(factory.registeredDate),
+          category: factory.category?.name || 'غير محدد'
         }));
         
         setFactories(processedFactories);
@@ -95,7 +101,10 @@ const MyFactories = () => {
     const status = factory.status || '';
     
     const matchesSearch = name.includes(lowerSearchTerm) || address.includes(lowerSearchTerm);
-    const matchesStatus = statusFilter === 'الكل' || status === statusFilter;
+    const matchesStatus = statusFilter === 'الكل' || 
+                         (statusFilter === 'نشط' && status === 'approved') ||
+                         (statusFilter === 'معلق' && status === 'pending') ||
+                         (statusFilter === 'مرفوض' && status === 'rejected');
     
     return matchesSearch && matchesStatus;
   });
@@ -109,6 +118,12 @@ const MyFactories = () => {
   const openDeleteModal = (factory) => {
     setCurrentFactory(factory);
     setShowDeleteModal(true);
+  };
+
+  const openStatusModal = (factory, status) => {
+    setCurrentFactory(factory);
+    setNewStatus(status);
+    setShowStatusModal(true);
   };
 
   const handleUpdateFactory = async () => {
@@ -136,12 +151,7 @@ const MyFactories = () => {
       setMessageColor('#198754');
       setShowMessage(true);
       setShowEditModal(false);
-      // إعادة تحميل الصفحة بعد ثانيتين
-    setTimeout(() => {
-      window.location.reload();
-    }, 2000);
       
-      // تحديث قائمة المصانع
       setFactories(factories.map(f => 
         f.id === currentFactory.id ? { ...f, ...result } : f
       ));
@@ -171,13 +181,85 @@ const MyFactories = () => {
     }
   };
 
+  const updateFactoryStatus = async () => {
+    try {
+      setLoading(true);
+      
+      const formData = new FormData();
+      formData.append('status', newStatus);
+      
+      const response = await axios.post(
+        `${API_URL}/factories/updateFactoryStatus/${currentFactory.id}`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+      
+      setMessage(`تم تغيير حالة المصنع إلى ${translateStatus(newStatus)} بنجاح`);
+      setMessageColor('#198754');
+      setShowMessage(true);
+      
+      setShowStatusModal(false);
+      setFactories(factories.map(f => 
+        f.id === currentFactory.id ? { ...f, status: newStatus } : f
+      ));
+    } catch (error) {
+      console.error('حدث خطأ:', error);
+      setMessage(error.response?.data?.message || 'حدث خطأ أثناء تغيير الحالة');
+      setMessageColor('#DC3545');
+      setShowMessage(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${API_URL}/factory-categories`,
+        { name: newCategoryName },
+        { headers: { 'Authorization': `Bearer ${user.token}` } }
+      );
+
+      setMessage('تم إضافة الصنف بنجاح');
+      setMessageColor('#198754');
+      setShowMessage(true);
+      setShowAddCategoryModal(false);
+      setNewCategoryName('');
+      
+      // يمكنك هنا إعادة تحميل بيانات المصانع إذا كانت تحتوي على الأصناف
+      // fetchFactories();
+    } catch (error) {
+      setMessage('حدث خطأ أثناء إضافة الصنف');
+      setMessageColor('#DC3545');
+      setShowMessage(true);
+      console.error('Error adding category:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
-    const statusMap = {
-      'نشط': 'success',
-      'معلق': 'warning',
-      'مكتمل': 'primary'
-    };
-    return statusMap[status] || 'secondary';
+    switch(status) {
+      case 'approved': return 'success';
+      case 'pending': return 'warning';
+      case 'rejected': return 'danger';
+      default: return 'secondary';
+    }
+  };
+
+  const translateStatus = (status) => {
+    switch(status) {
+      case 'approved': return 'مقبول';
+      case 'pending': return 'معلق';
+      case 'rejected': return 'مرفوض';
+      default: return status;
+    }
   };
 
   if (loading) {
@@ -257,7 +339,7 @@ const MyFactories = () => {
         </Row>
         
         <Row className="mb-4 g-3">
-          {['الكل', 'نشط', 'معلق', 'مكتمل'].map((status, index) => (
+          {['الكل', 'معلق', 'مقبول', 'مرفوض'].map((status, index) => (
             <Col md={3} key={index}>
               <Card className="border-0 shadow-sm h-100" style={{ backgroundColor: '#1e1e1e' }}>
                 <Card.Body className="text-white">
@@ -268,11 +350,27 @@ const MyFactories = () => {
                       </h6>
                       <h3 className="mb-0 text-white">
                         {status === 'الكل' ? factories.length : 
-                         factories.filter(f => f.status === status).length}
+                         factories.filter(f => 
+                           (status === 'معلق' && f.status === 'pending') ||
+                           (status === 'مقبول' && f.status === 'approved') ||
+                           (status === 'مرفوض' && f.status === 'rejected')
+                         ).length}
                       </h3>
                     </div>
-                    <div className={`bg-${getStatusBadge(status)} bg-opacity-10 p-3 rounded`}>
-                      <FaBuilding size={24} className={`text-${getStatusBadge(status)}`} />
+                    <div className={`bg-${getStatusBadge(
+                      status === 'معلق' ? 'pending' : 
+                      status === 'مقبول' ? 'approved' : 
+                      status === 'مرفوض' ? 'rejected' : 'secondary'
+                    )} bg-opacity-10 p-3 rounded`}>
+                      {status === 'مقبول' ? (
+                        <FaCheckCircle size={24} className="text-success" />
+                      ) : status === 'مرفوض' ? (
+                        <FaTimesCircle size={24} className="text-danger" />
+                      ) : (
+                        <FaBuilding size={24} className={
+                          status === 'معلق' ? 'text-warning' : 'text-secondary'
+                        } />
+                      )}
                     </div>
                   </div>
                 </Card.Body>
@@ -284,7 +382,7 @@ const MyFactories = () => {
         <Card className="border-0 shadow-sm mb-4" style={{ backgroundColor: '#1e1e1e' }}>
           <Card.Body>
             <Row className="align-items-center">
-              <Col md={5}>
+              <Col md={4}>
                 <InputGroup>
                   <InputGroup.Text className="bg-dark text-light border-secondary">
                     <FaSearch />
@@ -305,14 +403,21 @@ const MyFactories = () => {
                   className="bg-dark text-light border-secondary"
                 >
                   <option value="الكل">جميع الحالات</option>
-                  <option value="نشط">نشط</option>
                   <option value="معلق">معلق</option>
-                  <option value="مكتمل">مكتمل</option>
+                  <option value="مقبول">مقبول</option>
+                  <option value="مرفوض">مرفوض</option>
                 </Form.Select>
               </Col>
               
-              <Col md={4} className="text-end">
-                <Button as={NavLink} to={'/factory/registration'} variant="primary" className="me-2">
+              <Col md={5} className="text-end">
+                <Button 
+                  variant="success" 
+                  className="me-2"
+                  onClick={() => setShowAddCategoryModal(true)}
+                >
+                  <FaTags className="me-2" /> إضافة صنف جديد
+                </Button>
+                <Button as={NavLink} to={'/factory/registration'} variant="primary">
                   <FaPlus className="me-2" /> إضافة مصنع جديد
                 </Button>
               </Col>
@@ -329,7 +434,7 @@ const MyFactories = () => {
                     <div>
                       <Card.Title className="fw-bold mb-1 text-white">{factory.name}</Card.Title>
                       <Badge bg={getStatusBadge(factory.status)} className="fs-6">
-                        {factory.status}
+                        {translateStatus(factory.status)}
                       </Badge>
                     </div>
                     <div className="d-flex">
@@ -342,6 +447,25 @@ const MyFactories = () => {
                         <FaEdit />
                       </Button>
                       
+                      {factory.status === 'pending' && (
+                        <>
+                          <Button 
+                            variant="outline-success" 
+                            size="sm" 
+                            className="me-2"
+                            onClick={() => openStatusModal(factory, 'approved')}
+                          >
+                            <FaCheckCircle />
+                          </Button>
+                          <Button 
+                            variant="outline-danger" 
+                            size="sm"
+                            onClick={() => openStatusModal(factory, 'rejected')}
+                          >
+                            <FaTimesCircle />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                   
@@ -353,14 +477,30 @@ const MyFactories = () => {
                       <div className="fw-bold text-white">{factory.address}</div>
                     </div>
                     
+                    <div className="d-flex mb-2">
+                      <div className="text-light me-3">
+                        <FaTags className="me-1" /> الصنف
+                      </div>
+                      <div className="fw-bold text-white">{factory.category}</div>
+                    </div>
+                    
                     <div className="d-flex">
                       <div className="text-light me-3">
                         <FaFilePdf className="me-1 text-danger" /> دراسة الجدوى
                       </div>
                       <div>
-                        <a href="#" className="text-decoration-none text-info">
-                          {factory.feasibility_pdf?.name || 'لا يوجد ملف'}
-                        </a>
+                        {factory.feasibility_pdf ? (
+                          <a 
+                            href={factory.feasibility_pdf.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-decoration-none text-info"
+                          >
+                            عرض الملف
+                          </a>
+                        ) : (
+                          <span className="text-muted">لا يوجد ملف</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -383,13 +523,70 @@ const MyFactories = () => {
         )}
       </Container>
       
+      {/* نافذة إضافة صنف جديد */}
+      <Modal 
+        show={showAddCategoryModal} 
+        onHide={() => setShowAddCategoryModal(false)} 
+        centered
+        contentClassName="bg-dark text-light"
+      >
+        <Modal.Header 
+          closeButton 
+          closeVariant="white"
+          className="border-secondary" 
+          style={{ backgroundColor: '#1a1a1a' }}
+        >
+          <Modal.Title className="d-flex align-items-center text-white">
+            <FaTags className="me-2 text-success" /> إضافة صنف جديد
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label className="text-white">اسم الصنف</Form.Label>
+            <Form.Control 
+              type="text" 
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              className="bg-dark text-light border-secondary"
+              placeholder="أدخل اسم الصنف الجديد"
+              required
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer className="border-secondary" style={{ backgroundColor: '#1a1a1a' }}>
+          <Button variant="outline-light" onClick={() => setShowAddCategoryModal(false)}>
+            إلغاء
+          </Button>
+          <Button 
+            variant="success" 
+            onClick={handleAddCategory}
+            disabled={!newCategoryName || loading}
+          >
+            {loading ? (
+              <>
+                <Spinner as="span" size="sm" animation="border" className="me-2" />
+                جاري الإضافة...
+              </>
+            ) : (
+              'إضافة الصنف'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* نافذة تعديل المصنع */}
       <Modal 
         show={showEditModal} 
         onHide={() => setShowEditModal(false)} 
         size="lg"
         contentClassName="bg-dark text-light"
       >
-        <Modal.Header closeButton className="border-secondary" style={{ backgroundColor: '#1a1a1a' }}>
+        <Modal.Header 
+          closeButton 
+          closeVariant="white"
+          className="border-secondary" 
+          style={{ backgroundColor: '#1a1a1a' }}
+        >
           <Modal.Title className="text-white">تعديل بيانات المصنع</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -477,7 +674,170 @@ const MyFactories = () => {
         </Modal.Footer>
       </Modal>
       
+      {/* نافذة تغيير حالة المصنع */}
+      <Modal 
+        show={showStatusModal} 
+        onHide={() => setShowStatusModal(false)} 
+        centered
+        contentClassName="bg-dark text-light"
+      >
+        <Modal.Header 
+          closeButton 
+          closeVariant="white"
+          className="border-secondary" 
+          style={{ backgroundColor: '#1a1a1a' }}
+        >
+          <Modal.Title className="d-flex align-items-center text-white">
+            {newStatus === 'approved' ? (
+              <FaCheckCircle className="me-2 text-success" />
+            ) : (
+              <FaTimesCircle className="me-2 text-danger" />
+            )}
+            {newStatus === 'approved' ? 'قبول المصنع' : 'رفض المصنع'}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          <div className="mb-4">
+            {newStatus === 'approved' ? (
+              <FaCheckCircle size={48} className="text-success mb-3" />
+            ) : (
+              <FaTimesCircle size={48} className="text-danger mb-3" />
+            )}
+            <h4 className="text-white">
+              هل أنت متأكد من {newStatus === 'approved' ? 'قبول' : 'رفض'} هذا المصنع؟
+            </h4>
+            <p className="text-muted">
+              {newStatus === 'approved' ? 
+                'سيتم تفعيل المصنع في النظام' : 
+                'سيتم تعطيل المصنع ولن يكون متاحاً للاستخدام'}
+            </p>
+          </div>
+          
+          <div className="border border-secondary rounded p-4 mb-4" style={{ backgroundColor: '#1e1e1e' }}>
+            <Row className="mb-3">
+              <Col md={4} className="text-end text-light">
+                <strong>اسم المصنع:</strong>
+              </Col>
+              <Col md={8} className="text-start text-white">
+                {currentFactory.name}
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={4} className="text-end text-light">
+                <strong>رقم المصنع:</strong>
+              </Col>
+              <Col md={8} className="text-start text-white">
+                {currentFactory.id}
+              </Col>
+            </Row>
+            <Row>
+              <Col md={4} className="text-end text-light">
+                <strong>الحالة الحالية:</strong>
+              </Col>
+              <Col md={8} className="text-start">
+                <Badge bg={getStatusBadge(currentFactory.status)}>
+                  {translateStatus(currentFactory.status)}
+                </Badge>
+              </Col>
+            </Row>
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="border-secondary" style={{ backgroundColor: '#1a1a1a' }}>
+          <Button variant="outline-light" onClick={() => setShowStatusModal(false)}>
+            إلغاء
+          </Button>
+          <Button 
+            variant={newStatus === 'approved' ? 'success' : 'danger'} 
+            onClick={updateFactoryStatus}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Spinner as="span" size="sm" animation="border" className="me-2" />
+                جاري التحديث...
+              </>
+            ) : newStatus === 'approved' ? (
+              'تأكيد القبول'
+            ) : (
+              'تأكيد الرفض'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
       
+      {/* نافذة حذف المصنع */}
+      <Modal 
+        show={showDeleteModal} 
+        onHide={() => setShowDeleteModal(false)} 
+        centered
+        contentClassName="bg-dark text-light"
+      >
+        <Modal.Header 
+          closeButton 
+          closeVariant="white"
+          className="border-secondary" 
+          style={{ backgroundColor: '#1a1a1a' }}
+        >
+          <Modal.Title className="d-flex align-items-center text-white">
+            <FaTimesCircle className="me-2 text-danger" /> تأكيد الحذف
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center">
+          <div className="mb-4">
+            <FaTimesCircle size={48} className="text-danger mb-3" />
+            <h4 className="text-white">هل أنت متأكد من حذف هذا المصنع؟</h4>
+            <p className="text-muted">هذا الإجراء لا يمكن التراجع عنه</p>
+          </div>
+          
+          <div className="border border-secondary rounded p-4 mb-4" style={{ backgroundColor: '#1e1e1e' }}>
+            <Row className="mb-3">
+              <Col md={4} className="text-end text-light">
+                <strong>اسم المصنع:</strong>
+              </Col>
+              <Col md={8} className="text-start text-white">
+                {currentFactory.name}
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col md={4} className="text-end text-light">
+                <strong>رقم المصنع:</strong>
+              </Col>
+              <Col md={8} className="text-start text-white">
+                {currentFactory.id}
+              </Col>
+            </Row>
+            <Row>
+              <Col md={4} className="text-end text-light">
+                <strong>الحالة:</strong>
+              </Col>
+              <Col md={8} className="text-start">
+                <Badge bg={getStatusBadge(currentFactory.status)}>
+                  {translateStatus(currentFactory.status)}
+                </Badge>
+              </Col>
+            </Row>
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="border-secondary" style={{ backgroundColor: '#1a1a1a' }}>
+          <Button variant="outline-light" onClick={() => setShowDeleteModal(false)}>
+            إلغاء
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={handleDeleteFactory}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Spinner as="span" size="sm" animation="border" className="me-2" />
+                جاري الحذف...
+              </>
+            ) : (
+              'تأكيد الحذف'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
