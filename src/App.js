@@ -34,7 +34,8 @@ import InvestorTradingPlatform from './pages/website/investor/BuyAndSell';
 import InvestmentPortfolio from './pages/website/investor/BuyAndSell';
 import MarketTrading from './pages/website/investor/MarketTrading';
 import MyFactoryes from './pages/website/FactoryOwner/MyFactoryes';
-
+import FactoryDetails from './pages/website/investor/investmentrecord';
+import InvestmentDetails from './pages/website/investor/card';
 
 export default function App() {
 
@@ -66,6 +67,7 @@ export default function App() {
                  <Route path="/Admin/AdminFactories" element={<AdminFactories />} />
                  <Route path="/Admin/AdminReturnes" element={<AdminReturnes/>} />
                  <Route path="/Admin/ReportsPage" element={<ReportsPage/>} />
+                 
                 </Route>
 
                 {/* مسارات المستثمر */}
@@ -74,7 +76,10 @@ export default function App() {
                   <Route path="/investor/profile" element={<CompleteUserProfile />} />
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
-                  <Route path="/investor/Card" element={<Card />} />
+                  <Route path="/investor/investment/:id" element={<InvestmentDetails />} />
+                 
+                  
+                 
                   <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
 
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />

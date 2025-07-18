@@ -35,15 +35,12 @@ const Investment = () => {
           }
         };
 
-        // جلب البيانات بدون إرسال أي بيانات
         const response = await axios.get(
           `${API_URL}/InvestmentOpprtunities/getAcceptedOpportunitiesWithDetails`,
           config
         );
+        console.log(response);
 
-        console.log('API Raw Data:', response.data); // للتأكد من هيكل البيانات
-
-        // البيانات تأتي كمصفوفة مباشرة [{...}] حسب ما يظهر
         const apiData = response.data;
 
         if (!apiData || !Array.isArray(apiData)) {
@@ -51,33 +48,23 @@ const Investment = () => {
         }
 
         const formattedOpportunities = apiData.map(item => ({
-          id: item.opportunity_id || Math.random().toString(36).substr(2, 9),
+          id: item.opportunity_id,
           category: item.category_name || 'غير محدد',
           name: item.factory_name || 'غير معروف',
           address: item.factory_address || 'غير محدد',
-          feasibility_pdf: item.factory_feasibility_pdf ?
-            `${API_URL}/storage/${item.factory_feasibility_pdf}` : null,
           image: item.image_url || `https://source.unsplash.com/random/300x200?factory=${item.opportunity_id}`,
-          target_amount: formatCurrency(item.opportunity_target_amount),
-          minimum_target: formatCurrency(item.opportunity_minimum_target),
-          collected_amount: formatCurrency(item.opportunity_collected_amount),
-          start_date: formatDate(item.opportunity_strtup),
-          payout_frequency: translateFrequency(item.opportunity_payout_frequency),
-          profit_percentage: `${item.opportunity_profit_percentage}%`,
+          target_amount: item.opportunity_target_amount,
+          minimum_target: item.opportunity_minimum_target,
           description: item.opportunity_description || 'لا يوجد وصف متاح'
         }));
 
-
         setOpportunities(formattedOpportunities);
-        console.log(formattedOpportunities)
-
       } catch (err) {
         const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب الفرص الاستثمارية';
         setError(errorMsg);
         setMessage('حدث خطأ أثناء جلب البيانات');
         setMessageColor('#DC3545');
         setShowMessage(true);
-        console.error('API Error:', err);
       } finally {
         setLoading(false);
       }
@@ -86,30 +73,11 @@ const Investment = () => {
     fetchInvestmentOpportunities();
   }, [user]);
 
-  // ترجمة تكرار الدفع
-const translateFrequency = (freq) => {
-  const frequencies = {
-    'quarterly': 'ربع سنوي',
-    'monthly': 'شهري',
-    'annually': 'سنوي',
-    'biannually': 'نصف سنوي'
+  const formatCurrency = (amount) => {
+    if (!amount) return '0.00 ريال';
+    const num = parseFloat(amount);
+    return new Intl.NumberFormat('ar-SA').format(num) + ' ريال';
   };
-  return frequencies[freq] || freq;
-};
-
-// تنسيق المبالغ المالية
-const formatCurrency = (amount) => {
-  if (!amount) return '0.00 ريال';
-  const num = parseFloat(amount);
-  return new Intl.NumberFormat('ar-SA').format(num) + ' ريال';
-};
-
-// تنسيق التاريخ
-const formatDate = (dateString) => {
-  if (!dateString) return 'غير محدد';
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString('ar-SA', options);
-};
 
   if (loading) {
     return (
@@ -187,12 +155,7 @@ const formatDate = (dateString) => {
                   color: lightText,
                   border: `1px solid ${accent}`,
                   borderRadius: '15px',
-                  height: '100%',
-                  transition: 'transform 0.3s, box-shadow 0.3s',
-                  ':hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: `0 10px 20px rgba(254, 218, 106, 0.2)`
-                  }
+                  height: '100%'
                 }}>
                   <Card.Img
                     variant="top"
@@ -205,39 +168,28 @@ const formatDate = (dateString) => {
                     }}
                   />
                   <Card.Body className="text-end">
-                    <>
                     <Card.Title style={{ color: accent }}>
-                      {opportunity.title}
+                      {opportunity.name}
                     </Card.Title>
                     <Card.Text>
                       <div>
-                        <p>💰 المبلغ المستهدف: {opportunity.target_amount}</p>
-                        <p>📉 الحد الأدنى للمساهمة: {opportunity.minimum_target}</p>
-                        <p>🏦 المبلغ المجموع: {opportunity.collected_amount}</p>
-                        <p>📅 تاريخ البدء: {opportunity.start_date}</p>
-                        <p>🔄 تكرار الدفع: {opportunity.payout_frequency}</p>
-                        <p>📈 نسبة الربح: {opportunity.profit_percentage}</p>
-                        <p>📝 الوصف: {opportunity.description}</p>
+                        <p>💰 المبلغ المستهدف: {formatCurrency(opportunity.target_amount)}</p>
+                        <p>📉 الحد الأدنى للمساهمة: {formatCurrency(opportunity.minimum_target)}</p>
                       </div>
                     </Card.Text>
                     <Button
                       as={NavLink}
-                      to={`/investor/Card/${opportunity.id}`}
+                      to={`/investor/investment/${opportunity.id}`}
                       style={{
                         backgroundColor: accent,
                         borderColor: accent,
                         color: primaryDark,
                         fontWeight: 'bold',
-                        width: '100%',
-                        ':hover': {
-                          backgroundColor: '#e6c860',
-                          borderColor: '#e6c860'
-                        }
+                        width: '100%'
                       }}
                     >
                       المزيد من التفاصيل
                     </Button>
-                    </>
                   </Card.Body>
                 </Card>
               </Col>
