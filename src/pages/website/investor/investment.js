@@ -205,6 +205,7 @@ const formatDate = (dateString) => {
                     }}
                   />
                   <Card.Body className="text-end">
+                    <>
                     <Card.Title style={{ color: accent }}>
                       {opportunity.title}
                     </Card.Title>
@@ -236,6 +237,7 @@ const formatDate = (dateString) => {
                     >
                       المزيد من التفاصيل
                     </Button>
+                    </>
                   </Card.Body>
                 </Card>
               </Col>
