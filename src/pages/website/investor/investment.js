@@ -46,7 +46,7 @@ const Investment = () => {
         if (response.data && Array.isArray(response.data)) {
           const formattedOpportunities = response.data.map(opp => ({
             id: opp.id,
-            image: opp.image_url || `https://source.unsplash.com/random/800x600?property=${opp.id}`,
+            // image: opp.image_url || `https://source.unsplash.com/random/800x600?property=${opp.id}`,
             title: opp.title || `فرصة استثمارية #${opp.id}`,
             target_amount: opp.target_amount ? `${opp.target_amount.toLocaleString()} ريال` : 'غير محدد',
             minimum_target: opp.minimum_target ? `${opp.minimum_target.toLocaleString()} ريال` : 'غير محدد',
@@ -188,7 +188,7 @@ const Investment = () => {
                     </Card.Text>
                     <Button 
                       as={NavLink} 
-                      to={`/investor/Card/${opportunity.id}`}
+                      to={`/investor/Card/`}
                       style={{
                         backgroundColor: accent,
                         borderColor: accent,
