@@ -182,9 +182,9 @@ const MyFactories = () => {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      'نشط': 'success',
-      'معلق': 'warning',
-      'مكتمل': 'primary'
+      'approved': 'success',
+      'reject': 'warning',
+      'pending': 'primary'
     };
     return statusMap[status] || 'secondary';
   };
