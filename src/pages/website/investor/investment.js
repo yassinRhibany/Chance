@@ -21,32 +21,6 @@ const Investment = () => {
   const { user } = useAuth();
   const API_URL = 'http://127.0.0.1:8000/api';
 
-  // دالة مساعدة لتنسيق التاريخ
-  const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ar-SA', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch (e) {
-      console.error('Error formatting date:', e);
-      return 'غير محدد';
-    }
-  };
-
-  // دالة مساعدة لتحويل تكرار الدفع
-  const getFrequencyText = (frequency) => {
-    const frequencies = {
-      monthly: 'شهري',
-      quarterly: 'ربع سنوي',
-      yearly: 'سنوي',
-      weekly: 'أسبوعي'
-    };
-    return frequencies[frequency] || frequency || 'غير محدد';
-  };
-
   useEffect(() => {
     const fetchInvestmentOpportunities = async () => {
       try {
@@ -61,65 +35,41 @@ const Investment = () => {
           }
         };
 
-        console.log('Fetching data from API...');
+        // جلب البيانات بدون إرسال أي بيانات
         const response = await axios.get(
           `${API_URL}/InvestmentOpprtunities/getAcceptedOpportunitiesWithDetails`,
           config
         );
 
-        console.log('Full API Response:', response);
+        console.log('API Response:', response.data);
 
-        // تحديد المصفوفة الصحيحة من البيانات المرجعة
-        const responseData = response.data;
-        let opportunitiesData = [];
+        if (response.data && Array.isArray(response.data)) {
+          const formattedOpportunities = response.data.map(opp => ({
+            id: opp.id,
+            image: opp.image_url || `https://source.unsplash.com/random/800x600?property=${opp.id}`,
+            title: opp.title || `فرصة استثمارية #${opp.id}`,
+            target_amount: opp.target_amount ? `${opp.target_amount.toLocaleString()} ريال` : 'غير محدد',
+            minimum_target: opp.minimum_target ? `${opp.minimum_target.toLocaleString()} ريال` : 'غير محدد',
+            collected_amount: opp.collected_amount ? `${opp.collected_amount.toLocaleString()} ريال` : 'غير محدد',
+            start_date: opp.strtup ? new Date(opp.strtup).toLocaleDateString('ar-SA') : 'غير محدد',
+            payout_frequency: opp.payout_frequency || 'غير محدد',
+            profit_percentage: opp.profit_percentage ? `${opp.profit_percentage}%` : 'غير محدد',
+            description: opp.descrption || 'لا يوجد وصف'
+            
+          }));
         
-        if (Array.isArray(responseData)) {
-          opportunitiesData = responseData; // إذا كانت البيانات مصفوفة مباشرة
-        } else if (responseData.data && Array.isArray(responseData.data)) {
-          opportunitiesData = responseData.data; // إذا كانت البيانات في حقل data
-        } else if (responseData.opportunities && Array.isArray(responseData.opportunities)) {
-          opportunitiesData = responseData.opportunities; // إذا كانت البيانات في حقل opportunities
-        } else if (responseData.results && Array.isArray(responseData.results)) {
-          opportunitiesData = responseData.results; // إذا كانت البيانات في حقل results
+          
+          setOpportunities(formattedOpportunities);
         } else {
-          throw new Error('لا يمكن العثور على مصفوفة الفرص الاستثمارية في الاستجابة');
+          throw new Error('تنسيق البيانات غير صحيح من الخادم');
         }
-
-        console.log('Opportunities Data:', opportunitiesData);
-
-        const formattedOpportunities = opportunitiesData.map((opp, index) => ({
-          id: opp.id || `opp-${index}`,
-          image: opp.image_url || opp.image || `https://source.unsplash.com/random/800x600?property=${index}`,
-          title: opp.title || `فرصة استثمارية #${index + 1}`,
-          target_amount: opp.target_amount ? `${Number(opp.target_amount).toLocaleString('ar-SA')} ريال` : 'غير محدد',
-          minimum_target: opp.minimum_target ? `${Number(opp.minimum_target).toLocaleString('ar-SA')} ريال` : 'غير محدد',
-          collected_amount: opp.collected_amount ? `${Number(opp.collected_amount).toLocaleString('ar-SA')} ريال` : 'غير محدد',
-          start_date: opp.strtup || opp.start_date ? formatDate(opp.strtup || opp.start_date) : 'غير محدد',
-          payout_frequency: getFrequencyText(opp.payout_frequency),
-          profit_percentage: opp.profit_percentage ? `${opp.profit_percentage}%` : 'غير محدد',
-          description: opp.descrption || opp.description || 'لا يوجد وصف'
-        }));
-
-        console.log('Formatted Opportunities:', formattedOpportunities);
-        setOpportunities(formattedOpportunities);
       } catch (err) {
-        console.error('Error details:', {
-          error: err,
-          response: err.response?.data
-        });
-        
-        let errorMsg = 'حدث خطأ أثناء جلب الفرص الاستثمارية';
-        if (err.response) {
-          errorMsg = err.response.data?.message || 
-                    `خطأ في الخادم: ${err.response.status}`;
-        } else if (err.request) {
-          errorMsg = 'لا يوجد اتصال بالخادم';
-        }
-        
+        const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب الفرص الاستثمارية';
         setError(errorMsg);
         setMessage('حدث خطأ أثناء جلب البيانات');
         setMessageColor('#DC3545');
         setShowMessage(true);
+        console.error('API Error:', err);
       } finally {
         setLoading(false);
       }
@@ -135,7 +85,6 @@ const Investment = () => {
         minHeight: '100vh' 
       }}>
         <Spinner animation="border" variant="warning" />
-        <span className="ms-3" style={{ color: lightText }}>جاري تحميل البيانات...</span>
       </Container>
     );
   }
@@ -147,27 +96,16 @@ const Investment = () => {
         minHeight: '100vh' 
       }}>
         <Container>
-          <Alert variant="danger" className="text-center">
-            <Alert.Heading>خطأ في تحميل البيانات</Alert.Heading>
-            <p>{error}</p>
-            <hr />
-            <div className="d-flex justify-content-center">
-              <Button 
-                variant="outline-danger" 
-                onClick={() => window.location.reload()}
-                className="me-2"
-              >
-                إعادة المحاولة
-              </Button>
-              <Button 
-                variant="outline-secondary" 
-                as={NavLink} 
-                to="/"
-              >
-                العودة للصفحة الرئيسية
-              </Button>
-            </div>
+          <Alert variant="danger">
+            خطأ: {error}
           </Alert>
+          <Button 
+            variant="primary" 
+            onClick={() => window.location.reload()}
+            className="mt-3"
+          >
+            إعادة المحاولة
+          </Button>
         </Container>
       </Container>
     );
@@ -204,20 +142,9 @@ const Investment = () => {
         </h1>
         
         {opportunities.length === 0 ? (
-          <Card className="text-center border-0 shadow" style={{ 
-            backgroundColor: darkGray,
-            color: lightText
-          }}>
-            <Card.Body>
-              <Card.Title className="mb-3">لا توجد فرص استثمارية متاحة حالياً</Card.Title>
-              <Button 
-                variant="outline-primary" 
-                onClick={() => window.location.reload()}
-              >
-                تحديث الصفحة
-              </Button>
-            </Card.Body>
-          </Card>
+          <div className="text-center" style={{ color: lightText }}>
+            لا توجد فرص استثمارية متاحة حالياً
+          </div>
         ) : (
           <Row xs={1} md={2} lg={3} className="g-4">
             {opportunities.map((opportunity) => (
@@ -231,66 +158,32 @@ const Investment = () => {
                   transition: 'transform 0.3s, box-shadow 0.3s',
                   ':hover': {
                     transform: 'translateY(-5px)',
-                    boxShadow: `0 10px 20px rgba(254, 218, 106, 0.3)`
+                    boxShadow: `0 10px 20px rgba(254, 218, 106, 0.2)`
                   }
                 }}>
                   <Card.Img
                     variant="top"
                     src={opportunity.image}
-                    alt={opportunity.title}
                     style={{
                       height: '250px',
                       objectFit: 'cover',
                       borderTopLeftRadius: '15px',
                       borderTopRightRadius: '15px'
                     }}
-                    onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/800x600?text=صورة+غير+متوفرة';
-                    }}
                   />
                   <Card.Body className="text-end">
-                    <Card.Title style={{ color: accent, minHeight: '3rem' }}>
+                    <Card.Title style={{ color: accent }}>
                       {opportunity.title}
                     </Card.Title>
                     <Card.Text>
-                      <div className="mb-3">
-                        <div className="d-flex justify-content-between mb-2">
-                          <span className="text-muted">المبلغ المستهدف:</span>
-                          <span>{opportunity.target_amount}</span>
-                        </div>
-                        <div className="d-flex justify-content-between mb-2">
-                          <span className="text-muted">الحد الأدنى:</span>
-                          <span>{opportunity.minimum_target}</span>
-                        </div>
-                        <div className="d-flex justify-content-between mb-2">
-                          <span className="text-muted">المجموع:</span>
-                          <span>{opportunity.collected_amount}</span>
-                        </div>
-                        <div className="d-flex justify-content-between mb-2">
-                          <span className="text-muted">تاريخ البدء:</span>
-                          <span>{opportunity.start_date}</span>
-                        </div>
-                        <div className="d-flex justify-content-between mb-2">
-                          <span className="text-muted">تكرار الدفع:</span>
-                          <span>{opportunity.payout_frequency}</span>
-                        </div>
-                        <div className="d-flex justify-content-between mb-2">
-                          <span className="text-muted">نسبة الربح:</span>
-                          <span>{opportunity.profit_percentage}</span>
-                        </div>
-                        <div className="mt-3">
-                          <p className="text-muted mb-1">الوصف:</p>
-                          <p style={{ 
-                            maxHeight: '3.6rem',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical'
-                          }}>
-                            {opportunity.description}
-                          </p>
-                        </div>
+                      <div>
+                        <p>💰 المبلغ المستهدف: {opportunity.target_amount}</p>
+                        <p>📉 الحد الأدنى للمساهمة: {opportunity.minimum_target}</p>
+                        <p>🏦 المبلغ المجموع: {opportunity.collected_amount}</p>
+                        <p>📅 تاريخ البدء: {opportunity.start_date}</p>
+                        <p>🔄 تكرار الدفع: {opportunity.payout_frequency}</p>
+                        <p>📈 نسبة الربح: {opportunity.profit_percentage}</p>
+                        <p>📝 الوصف: {opportunity.description}</p>
                       </div>
                     </Card.Text>
                     <Button 
