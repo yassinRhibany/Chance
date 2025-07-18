@@ -9,6 +9,7 @@ import {
   FaCheckCircle, FaTimesCircle, FaEllipsisV
 } from 'react-icons/fa';
 import axios from 'axios';
+import { useAuth } from '../../../Context/AuthContext';
 
 const FactoryManagement = () => {
   // Application states
@@ -33,7 +34,9 @@ const FactoryManagement = () => {
   const [categoryError, setCategoryError] = useState('');
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
-
+  const { user } = useAuth();
+const token=user.token; 
+ console.log(categoryToDelete);
   // Base API URL
   const API_URL = 'http://127.0.0.1:8000/api';
   
@@ -272,16 +275,30 @@ const FactoryManagement = () => {
     }
   };
 
+
   // Delete category
   const deleteCategory = async () => {
     if (!categoryToDelete) return;
     
     try {
       setIsLoading(true);
-      await axios.delete(`${API_URL}/categories/destroy/${categoryToDelete.id}`);
+      await axios.delete(`${API_URL}/categories/destroy/${categoryToDelete.id}`, " ",
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            
+          }
+        }
+       
+       
+      );
+      
+       console.log(categoryToDelete);
+     
       
       setFactoryCategories(factoryCategories.filter(cat => cat.id !== categoryToDelete.id));
       setCategoryToDelete(null);
+      
       setShowDeleteCategoryModal(false);
       
       // Update factories using this category

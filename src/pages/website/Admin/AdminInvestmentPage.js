@@ -7,6 +7,9 @@ import {
   FiSearch, FiFilter, FiPlus, FiEdit, FiTrash2, 
   FiDollarSign, FiCalendar, FiMapPin, FiUser, FiBarChart2 
 } from 'react-icons/fi';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../Context/AuthContext';
 
 const AdminInvestmentPage = () => {
   // ألوان التصميم
@@ -18,9 +21,13 @@ const AdminInvestmentPage = () => {
   const borderColor = '#3A3B40';
   
   // حالات التطبيق
+  const { factoryId } = useParams();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [opportunities, setOpportunities] = useState([]);
   const [filteredOpportunities, setFilteredOpportunities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [factoryLoading, setFactoryLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,33 +41,131 @@ const AdminInvestmentPage = () => {
     completed: 0,
     pending: 0
   });
+  const [factoryInfo, setFactoryInfo] = useState(null);
+  const [showMessage, setShowMessage] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageColor, setMessageColor] = useState('');
 
-  // توليد بيانات وهمية للفرص الاستثمارية
+  // جلب بيانات المصنع والفرص الاستثمارية
   useEffect(() => {
-    const mockOpportunities = [
-      { id: 1, title: 'عقار تجاري مميز', owner: 'محمد أحمد', amount: '5,000,000 ريال', funded: '2,500,000 ريال', status: 'active', location: 'الرياض', date: '2023-10-15', investors: 24 },
-      { id: 2, title: 'مجمع سكني فاخر', owner: 'شركة التعمير', amount: '12,000,000 ريال', funded: '8,400,000 ريال', status: 'active', location: 'جدة', date: '2023-10-10', investors: 42 },
-      { id: 3, title: 'أرض استثمارية', owner: 'علي عبدالله', amount: '8,000,000 ريال', funded: '3,200,000 ريال', status: 'active', location: 'الدمام', date: '2023-10-05', investors: 18 },
-      { id: 4, title: 'مشروع سياحي', owner: 'مجموعة السياحة', amount: '15,000,000 ريال', funded: '15,000,000 ريال', status: 'completed', location: 'العلا', date: '2023-09-20', investors: 65 },
-      { id: 5, title: 'مصنع ألبان', owner: 'أحمد السليم', amount: '7,500,000 ريال', funded: '2,250,000 ريال', status: 'active', location: 'القصيم', date: '2023-10-12', investors: 15 },
-      { id: 6, title: 'برج مكتبي', owner: 'شركة الأبراج', amount: '20,000,000 ريال', funded: '12,000,000 ريال', status: 'active', location: 'الرياض', date: '2023-09-25', investors: 38 },
-      { id: 7, title: 'مشروع زراعي', owner: 'شركة الزراعة الحديثة', amount: '6,000,000 ريال', funded: '6,000,000 ريال', status: 'completed', location: 'حائل', date: '2023-08-15', investors: 28 },
-      { id: 8, title: 'فندق خمس نجوم', owner: 'مجموعة الضيافة', amount: '25,000,000 ريال', funded: '10,000,000 ريال', status: 'active', location: 'مكة', date: '2023-10-08', investors: 52 },
-      { id: 9, title: 'مركز تسوق', owner: 'شركة التجارة', amount: '18,000,000 ريال', funded: '5,400,000 ريال', status: 'pending', location: 'الشرقية', date: '2023-10-01', investors: 0 },
-      { id: 10, title: 'مشروع تكنولوجي', owner: 'شركة التقنية', amount: '10,000,000 ريال', funded: '7,500,000 ريال', status: 'active', location: 'الرياض', date: '2023-09-30', investors: 31 },
-    ];
+    if (!factoryId || factoryId === 'undefined') {
+      navigate('/admin/factories');
+      return;
+    }
+
+    if (!user?.token) {
+      setError('يجب تسجيل الدخول أولاً');
+      setMessage('يجب تسجيل الدخول للوصول إلى هذه الصفحة');
+      setMessageColor('#DC3545');
+      setShowMessage(true);
+      navigate('/login');
+      return;
+    }
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setFactoryLoading(true);
+        
+        // جلب معلومات المصنع
+        const factoryResponse = await axios.get(
+          `http://127.0.0.1:8000/api/factories/${factoryId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${user.token}`,
+              'Accept': 'application/json'
+            }
+          }
+        );
+        
+     
+        setFactoryInfo(factoryResponse.data);
+        setFactoryLoading(false);
+
+        // جلب الفرص الاستثمارية للمصنع
+        const opportunitiesResponse = await axios.get(
+          `http://127.0.0.1:8000/api/InvestmentOpprtunities/getFactoryOpportunities/${factoryId}`,
+          
+        );
+
+        if (opportunitiesResponse.data && Array.isArray(opportunitiesResponse.data)) {
+          const formattedOpportunities = opportunitiesResponse.data.map(opp => ({
+            id: opp.id,
+            title: opp.name || 'بدون عنوان',
+            owner: factoryResponse.data.name || 'غير معروف',
+            amount: `${opp.required_amount?.toLocaleString() || '0'} ريال`,
+            funded: `${opp.funded_amount?.toLocaleString() || '0'} ريال`,
+            status: getStatusFromAPI(opp.status),
+            location: factoryResponse.data.address || 'غير محدد',
+            date: opp.created_at ? new Date(opp.created_at).toISOString().split('T')[0] : 'غير محدد',
+            investors: opp.investors_count || 0,
+            factory_id: factoryId,
+            description: opp.description || '',
+            risk_level: opp.risk_level || 'medium',
+            duration: opp.duration || 'غير محدد'
+          }));
+          
+          // حساب الإحصائيات
+          const total = formattedOpportunities.length;
+          const active = formattedOpportunities.filter(o => o.status === 'active').length;
+          const completed = formattedOpportunities.filter(o => o.status === 'completed').length;
+          const pending = formattedOpportunities.filter(o => o.status === 'pending').length;
+          
+          setStats({ total, active, completed, pending });
+          setOpportunities(formattedOpportunities);
+          setFilteredOpportunities(formattedOpportunities);
+        } else {
+          setError('تنسيق البيانات غير صحيح من الخادم');
+          setMessage('هيكل البيانات غير متوقع من السيرفر');
+          setMessageColor('#DC3545');
+          setShowMessage(true);
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('فشل في جلب البيانات من الخادم');
+        setMessage('حدث خطأ أثناء جلب البيانات');
+        setMessageColor('#DC3545');
+        setShowMessage(true);
+        
+        if (err.response?.status === 401) {
+          logout();
+          navigate('/login');
+        } else if (err.response?.status === 404) {
+          setMessage('المصنع المطلوب غير موجود');
+          setMessageColor('#DC3545');
+          setShowMessage(true);
+          navigate('/admin/factories');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    // حساب الإحصائيات
-    const total = mockOpportunities.length;
-    const active = mockOpportunities.filter(o => o.status === 'active').length;
-    const completed = mockOpportunities.filter(o => o.status === 'completed').length;
-    const pending = mockOpportunities.filter(o => o.status === 'pending').length;
-    
-    setStats({ total, active, completed, pending });
-    setOpportunities(mockOpportunities);
-    setFilteredOpportunities(mockOpportunities);
-    setLoading(false);
-  }, []);
+    fetchData();
+  }, [factoryId, user, navigate, logout]);
+
+  // تحويل حالة API إلى حالة التطبيق
+  const getStatusFromAPI = (apiStatus) => {
+    switch (apiStatus) {
+      case 'active':
+      case 'مفعل':
+      case 'نشط':
+        return 'active';
+      case 'completed':
+      case 'مكتمل':
+      case 'منتهي':
+        return 'completed';
+      case 'pending':
+      case 'قيد الانتظار':
+      case 'قيد المراجعة':
+        return 'pending';
+      case 'rejected':
+      case 'مرفوض':
+        return 'rejected';
+      default:
+        return 'pending';
+    }
+  };
 
   // تطبيق الفلاتر والبحث
   useEffect(() => {
@@ -71,7 +176,8 @@ const AdminInvestmentPage = () => {
       result = result.filter(opp => 
         opp.title.toLowerCase().includes(term) || 
         opp.owner.toLowerCase().includes(term) ||
-        opp.location.toLowerCase().includes(term)
+        opp.location.toLowerCase().includes(term) ||
+        (opp.description && opp.description.toLowerCase().includes(term))
       );
     }
     
@@ -103,11 +209,53 @@ const AdminInvestmentPage = () => {
     setShowDeleteModal(true);
   };
   
-  const deleteOpportunity = () => {
-    if (selectedOpportunity) {
+  const deleteOpportunity = async () => {
+    if (!selectedOpportunity || !factoryId) return;
+
+    try {
+      await axios.delete(
+        `http://127.0.0.1:8000/api/InvestmentOpprtunities/${selectedOpportunity.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Accept': 'application/json'
+          }
+        }
+      );
+      
       setOpportunities(opportunities.filter(o => o.id !== selectedOpportunity.id));
       setShowDeleteModal(false);
       setSelectedOpportunity(null);
+      
+      setMessage('تم حذف الفرصة الاستثمارية بنجاح');
+      setMessageColor('#28A745');
+      setShowMessage(true);
+      
+      // تحديث الإحصائيات
+      const total = opportunities.length - 1;
+      let active = stats.active;
+      let completed = stats.completed;
+      let pending = stats.pending;
+      
+      if (selectedOpportunity.status === 'active') active--;
+      else if (selectedOpportunity.status === 'completed') completed--;
+      else if (selectedOpportunity.status === 'pending') pending--;
+      
+      setStats({ total, active, completed, pending });
+    } catch (err) {
+      console.error('Error deleting opportunity:', err);
+      setMessage('فشل في حذف الفرصة الاستثمارية');
+      setMessageColor('#DC3545');
+      setShowMessage(true);
+      
+      if (err.response?.status === 401) {
+        logout();
+        navigate('/login');
+      } else if (err.response?.status === 404) {
+        setMessage('الفرصة غير موجودة أو تم حذفها بالفعل');
+        setMessageColor('#DC3545');
+        setShowMessage(true);
+      }
     }
   };
   
@@ -120,6 +268,8 @@ const AdminInvestmentPage = () => {
         return 'success';
       case 'pending':
         return 'secondary';
+      case 'rejected':
+        return 'danger';
       default:
         return 'light';
     }
@@ -134,6 +284,8 @@ const AdminInvestmentPage = () => {
         return 'مكتمل';
       case 'pending':
         return 'قيد المراجعة';
+      case 'rejected':
+        return 'مرفوض';
       default:
         return status;
     }
@@ -141,9 +293,29 @@ const AdminInvestmentPage = () => {
   
   // حساب نسبة التمويل
   const getFundingPercentage = (amount, funded) => {
-    const amountNum = parseInt(amount.replace(/,/g, '')), 
-          fundedNum = parseInt(funded.replace(/,/g, ''));
-    return Math.round((fundedNum / amountNum) * 100);
+    const amountNum = parseInt(amount.replace(/[^0-9]/g, '')) || 0;
+    const fundedNum = parseInt(funded.replace(/[^0-9]/g, '')) || 0;
+    return amountNum > 0 ? Math.round((fundedNum / amountNum) * 100) : 0;
+  };
+
+  // إضافة فرصة جديدة
+  const handleAddOpportunity = () => {
+    navigate(`/admin/factories/${factoryId}/opportunities/new`);
+  };
+
+  // تعديل فرصة موجودة
+  const handleEditOpportunity = (opportunityId) => {
+    navigate(`/admin/factories/${factoryId}/opportunities/${opportunityId}/edit`);
+  };
+
+  // عرض تفاصيل الفرصة
+  const handleViewDetails = (opportunityId) => {
+    navigate(`/admin/factories/${factoryId}/opportunities/${opportunityId}`);
+  };
+
+  // العودة إلى صفحة المصانع
+  const handleBackToFactories = () => {
+    navigate('/admin/factories');
   };
 
   return (
@@ -152,19 +324,78 @@ const AdminInvestmentPage = () => {
       minHeight: '100vh',
       color: lightText
     }}>
+      {/* رسالة التنبيه */}
+      {showMessage && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          width: '100%',
+          maxWidth: '600px',
+          padding: '0 15px'
+        }}>
+          <Alert 
+            variant={messageColor === '#DC3545' ? 'danger' : 'success'}
+            onClose={() => setShowMessage(false)}
+            dismissible
+            style={{ 
+              backgroundColor: messageColor === '#DC3545' ? '#2D1E22' : '#1E2D24',
+              borderColor: borderColor
+            }}
+          >
+            {message}
+          </Alert>
+        </div>
+      )}
+
       <Container>
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
+            <Button 
+              variant="outline-secondary" 
+              onClick={handleBackToFactories}
+              className="mb-3"
+              style={{ borderColor: borderColor, color: lightText }}
+            >
+              العودة إلى قائمة المصانع
+            </Button>
+            
             <h2 className="fw-bold mb-1" style={{ color: accent }}>
               <FiBarChart2 className="me-2" />
               إدارة الفرص الاستثمارية
             </h2>
-            <p className="mb-0" style={{ color: mutedText }}>
-              تصفح وأدر جميع الفرص الاستثمارية المسجلة في النظام
-            </p>
+            {factoryLoading ? (
+              <div className="d-flex align-items-center">
+                <Spinner animation="border" size="sm" className="me-2" style={{ color: accent }} />
+                <span style={{ color: mutedText }}>جاري تحميل بيانات المصنع...</span>
+              </div>
+            ) : factoryInfo ? (
+              <div>
+                <p className="mb-0" style={{ color: mutedText }}>
+                  لمصنع: <span style={{ color: accent }}>{factoryInfo.name}</span> - {factoryInfo.address}
+                </p>
+                <p className="mb-0 small" style={{ color: mutedText }}>
+                  التصنيف: {factoryInfo.category?.name || 'غير محدد'}
+                </p>
+              </div>
+            ) : (
+              <p className="mb-0 text-danger">لا توجد بيانات للمصنع</p>
+            )}
           </div>
           
-          <Button variant="warning" className="d-flex align-items-center">
+          <Button 
+            variant="warning" 
+            className="d-flex align-items-center"
+            onClick={handleAddOpportunity}
+            style={{
+              backgroundColor: accent,
+              color: primaryDark,
+              border: 'none',
+              fontWeight: '600'
+            }}
+          >
             <FiPlus className="me-2" /> إضافة فرصة جديدة
           </Button>
         </div>
@@ -291,11 +522,16 @@ const AdminInvestmentPage = () => {
                   <option value="active">نشطة</option>
                   <option value="completed">مكتملة</option>
                   <option value="pending">قيد المراجعة</option>
+                  <option value="rejected">مرفوضة</option>
                 </Form.Select>
               </div>
               
               <div>
-                <Button variant="outline-secondary" className="d-flex align-items-center">
+                <Button 
+                  variant="outline-secondary" 
+                  className="d-flex align-items-center"
+                  style={{ borderColor: borderColor, color: lightText }}
+                >
                   <FiFilter className="me-2" /> المزيد من الفلاتر
                 </Button>
               </div>
@@ -310,6 +546,12 @@ const AdminInvestmentPage = () => {
               <div className="text-center py-5">
                 <Spinner animation="border" variant="warning" />
                 <p className="mt-3" style={{ color: mutedText }}>جاري تحميل الفرص الاستثمارية...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-5">
+                <Alert variant="danger" style={{ backgroundColor: primaryDark }}>
+                  {error}
+                </Alert>
               </div>
             ) : filteredOpportunities.length === 0 ? (
               <div className="text-center py-5">
@@ -334,7 +576,11 @@ const AdminInvestmentPage = () => {
                   </thead>
                   <tbody>
                     {currentOpportunities.map((opp) => (
-                      <tr key={opp.id} style={{ borderBottom: `1px solid ${borderColor}` }}>
+                      <tr 
+                        key={opp.id} 
+                        style={{ borderBottom: `1px solid ${borderColor}`, cursor: 'pointer' }}
+                        onClick={() => handleViewDetails(opp.id)}
+                      >
                         <td>
                           <div className="d-flex align-items-center">
                             <div 
@@ -348,6 +594,11 @@ const AdminInvestmentPage = () => {
                               <div className="small" style={{ color: mutedText }}>
                                 <FiMapPin size={12} className="me-1" /> {opp.location}
                               </div>
+                              {opp.duration && (
+                                <div className="small" style={{ color: mutedText }}>
+                                  <FiCalendar size={12} className="me-1" /> {opp.duration}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -391,14 +642,27 @@ const AdminInvestmentPage = () => {
                         <td style={{ color: mutedText }}>{opp.date}</td>
                         <td>
                           <div className="d-flex gap-2">
-                            <Button variant="outline-warning" size="sm" className="d-flex align-items-center">
+                            <Button 
+                              variant="outline-warning" 
+                              size="sm" 
+                              className="d-flex align-items-center"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditOpportunity(opp.id);
+                              }}
+                              style={{ borderColor: accent, color: accent }}
+                            >
                               <FiEdit size={16} />
                             </Button>
                             <Button 
                               variant="outline-danger" 
                               size="sm" 
                               className="d-flex align-items-center"
-                              onClick={() => confirmDelete(opp)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                confirmDelete(opp);
+                              }}
+                              style={{ borderColor: '#dc3545', color: '#dc3545' }}
                             >
                               <FiTrash2 size={16} />
                             </Button>
@@ -418,7 +682,11 @@ const AdminInvestmentPage = () => {
                   <Pagination.Prev 
                     disabled={currentPage === 1} 
                     onClick={() => handlePageChange(currentPage - 1)}
-                    style={{ backgroundColor: primaryDark, borderColor: borderColor }}
+                    style={{ 
+                      backgroundColor: primaryDark, 
+                      borderColor: borderColor,
+                      color: lightText
+                    }}
                   />
                   
                   {[...Array(totalPages)].map((_, idx) => (
@@ -439,7 +707,11 @@ const AdminInvestmentPage = () => {
                   <Pagination.Next 
                     disabled={currentPage === totalPages} 
                     onClick={() => handlePageChange(currentPage + 1)}
-                    style={{ backgroundColor: primaryDark, borderColor: borderColor }}
+                    style={{ 
+                      backgroundColor: primaryDark, 
+                      borderColor: borderColor,
+                      color: lightText
+                    }}
                   />
                 </Pagination>
               </div>
@@ -457,7 +729,11 @@ const AdminInvestmentPage = () => {
       >
         <Modal.Header 
           closeButton 
-          style={{ backgroundColor: primaryDark, color: accent, borderColor: borderColor }}
+          style={{ 
+            backgroundColor: primaryDark, 
+            color: accent, 
+            borderColor: borderColor 
+          }}
         >
           <Modal.Title>تأكيد حذف الفرصة</Modal.Title>
         </Modal.Header>
@@ -472,6 +748,8 @@ const AdminInvestmentPage = () => {
               <div className="mt-4 p-3 rounded" style={{ backgroundColor: primaryDark }}>
                 <p className="mb-1 fw-medium">{selectedOpportunity.title}</p>
                 <p className="mb-0 small" style={{ color: mutedText }}>المالك: {selectedOpportunity.owner}</p>
+                <p className="mb-0 small" style={{ color: mutedText }}>المبلغ: {selectedOpportunity.amount}</p>
+                <p className="mb-0 small" style={{ color: mutedText }}>الحالة: {getStatusText(selectedOpportunity.status)}</p>
               </div>
             )}
           </div>
@@ -481,7 +759,10 @@ const AdminInvestmentPage = () => {
           <Button 
             variant="secondary" 
             onClick={() => setShowDeleteModal(false)}
-            style={{ borderColor: borderColor }}
+            style={{ 
+              borderColor: borderColor,
+              color: lightText
+            }}
           >
             إلغاء
           </Button>
@@ -489,6 +770,7 @@ const AdminInvestmentPage = () => {
           <Button 
             variant="danger" 
             onClick={deleteOpportunity}
+            style={{ fontWeight: '600' }}
           >
             <FiTrash2 className="me-2" /> حذف الفرصة
           </Button>
