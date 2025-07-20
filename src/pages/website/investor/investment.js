@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, ProgressBar } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
@@ -19,6 +19,7 @@ const Investment = () => {
   const [showMessage, setShowMessage] = useState(false);
 
   const { user } = useAuth();
+  console.log(user)
   const API_URL = 'http://127.0.0.1:8000/api';
 
   useEffect(() => {
@@ -39,7 +40,7 @@ const Investment = () => {
           `${API_URL}/InvestmentOpprtunities/getAcceptedOpportunitiesWithDetails`,
           config
         );
-        console.log(response);
+        console.log(response.data);
 
         const apiData = response.data;
 
@@ -49,13 +50,19 @@ const Investment = () => {
 
         const formattedOpportunities = apiData.map(item => ({
           id: item.opportunity_id,
+          collected_amount: item.opportunity_collected_amount || '10',
+          minimum_target: item.opportunity_minimum_target,
+          opportunity_strtup: item.opportunity_strtup || 'غير محدد',
+          opportunity_payout_frequency:item.opportunity_payout_frequency ||'غير محدد',
+          opportunity_profit_percentage:item.opportunity_profit_percentage,
           category: item.category_name || 'غير محدد',
           name: item.factory_name || 'غير معروف',
           address: item.factory_address || 'غير محدد',
+          factory_feasibility_pdf:item.factory_feasibility_pdf,
           image: item.image_url || `https://source.unsplash.com/random/300x200?factory=${item.opportunity_id}`,
           target_amount: item.opportunity_target_amount,
-          minimum_target: item.opportunity_minimum_target,
-          description: item.opportunity_description || 'لا يوجد وصف متاح'
+          description: item.opportunity_description || 'لا يوجد وصف متاح',
+
         }));
 
         setOpportunities(formattedOpportunities);
@@ -175,11 +182,22 @@ const Investment = () => {
                       <div>
                         <p>💰 المبلغ المستهدف: {formatCurrency(opportunity.target_amount)}</p>
                         <p>📉 الحد الأدنى للمساهمة: {formatCurrency(opportunity.minimum_target)}</p>
+                        <div className="mb-3">
+                          <h6 style={{ color: accent }}>مستوى الإنجاز:</h6>
+                          <ProgressBar
+                            now={opportunity.collected_amount}
+                            label={`${opportunity.collected_amount}%`}
+                            // variant="#7CB2422"
+                            style={{ height: '20px' }}
+                          />
+
+                        </div>
                       </div>
                     </Card.Text>
                     <Button
                       as={NavLink}
                       to={`/investor/investment/${opportunity.id}`}
+                      state={{ itemData: opportunity }}
                       style={{
                         backgroundColor: accent,
                         borderColor: accent,

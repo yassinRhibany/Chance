@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
   Card,
@@ -19,10 +19,13 @@ import Message from '../../../components/Message.js/Message';
 
 const InvestmentDetails = () => {
   const { id } = useParams();
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const API_URL = 'http://127.0.0.1:8000/api';
-
+  const { state } = useLocation();
+  const { itemData } = state;
+  console.log(user.token)
   // الألوان المخصصة
   const primaryDark = '#1D1E22';
   const accent = '#FEDA6A';
@@ -59,10 +62,10 @@ const InvestmentDetails = () => {
         };
 
         const response = await axios.get(
-          `${API_URL}/InvestmentOpprtunities/getAcceptedOpportunitiesWithDetails/${id}`,
+          `${API_URL}/InvestmentOpprtunities/getFactoryOpportunities/${id}`,
           config
         );
-
+        console.log(response)
         if (!response.data) {
           throw new Error('تنسيق البيانات غير صحيح');
         }
@@ -70,14 +73,14 @@ const InvestmentDetails = () => {
         const apiData = response.data;
 
         const formattedOpportunity = {
-          id: apiData.opportunity_id,
-          name: apiData.factory_name || 'غير معروف',
-          category: apiData.category_name || 'غير محدد',
-          address: apiData.factory_address || 'غير محدد',
-          description: apiData.opportunity_description || 'لا يوجد وصف متاح',
+          id: apiData.opportunities, id,
+          name: apiData.factory || 'غير معروف',
+          // category: apiData.category_name || 'غير محدد',
+          // address: apiData.factory_address || 'غير محدد',
+          description: apiData.opportunities.descrption || 'لا يوجد وصف متاح',
           image: apiData.image_url || `https://source.unsplash.com/random/800x600?factory=${apiData.opportunity_id}`,
-          feasibility_pdf: apiData.factory_feasibility_pdf ?
-            `${API_URL}/storage/${apiData.factory_feasibility_pdf}` : null,
+          // feasibility_pdf: apiData.factory_feasibility_pdf ?
+          // `${API_URL}/storage/${apiData.factory_feasibility_pdf}` : null,
           target_amount: apiData.opportunity_target_amount,
           minimum_target: apiData.opportunity_minimum_target,
           collected_amount: apiData.opportunity_collected_amount,
@@ -115,9 +118,12 @@ const InvestmentDetails = () => {
   };
 
   const formatCurrency = (amount) => {
-    if (!amount) return '0.00 ريال';
+    if (!amount) return '$0.00';
     const num = parseFloat(amount);
-    return new Intl.NumberFormat('ar-SA').format(num) + ' ريال';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(num);
   };
 
   const formatDate = (dateString) => {
@@ -154,25 +160,31 @@ const InvestmentDetails = () => {
         return;
       }
 
+      // إنشاء FormData وإضافة الحقول
+      const formData = new FormData();
+      formData.append('opprtunty_id', itemData.id); // التأكد من أن الاسم مطابق لما يتوقعه الخادم
+      formData.append('amount', investmentAmount); // القيمة كـ string أو number
+
+      // لا تحدد Content-Type يدويًا عند استخدام FormData (يضبطه axios تلقائيًا)
       const config = {
         headers: {
           'Authorization': `Bearer ${user.token}`,
-          'Content-Type': 'application/json'
+          // 'Content-Type': 'multipart/form-data' // ⚠️ لا تضف هذا السطر! axios يضبطه تلقائيًا
         }
       };
 
-      const investmentData = {
-        opportunity_id: id,
-        amount: investmentAmount,
-        investor_id: user.id
-      };
+      console.log("FormData Contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value); // تأكد من أن البيانات مضاف بشكل صحيح
+      }
 
       const response = await axios.post(
-        `${API_URL}/investments`,
-        investmentData,
+        `http://127.0.0.1:8000/api/InvestmentOpprtunities/confirmPurchase`,
+        formData,
         config
       );
 
+      console.log("Response:", response.data);
       setShowInvestModal(false);
       setInvestmentAmount('');
       setMessage('تمت عملية الاستثمار بنجاح');
@@ -180,13 +192,19 @@ const InvestmentDetails = () => {
       setShowMessage(true);
       setTimeout(() => setShowMessage(false), 5000);
 
-      // إعادة تحميل البيانات بعد الاستثمار
-      navigate(0);
-
     } catch (err) {
-      setMessage(err.response?.data?.message || 'حدث خطأ أثناء محاولة الاستثمار. يرجى المحاولة لاحقاً');
+      console.error("Full Error:", err);
+      const errorDetails = err.response?.data?.message;
+      
+      if (errorDetails == "Insufficient wallet balance")
+        setMessage("..رصيدك غير كافي");
+      else
+        setMessage(errorDetails);
+
       setMessageColor('#DC3545');
       setShowMessage(true);
+      // setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
+
     }
   };
 
@@ -245,25 +263,7 @@ const InvestmentDetails = () => {
         minHeight: '100vh'
       }}>
         <Container>
-          {showMessage && (
-            <div style={{
-              position: 'fixed',
-              top: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 9999,
-              width: '100%',
-              maxWidth: '600px',
-              padding: '0 15px'
-            }}>
-              <Message
-                color={messageColor}
-                show={showMessage}
-                message={message}
-                onClose={() => setShowMessage(false)}
-              />
-            </div>
-          )}
+
 
           <Card style={{
             backgroundColor: darkGray,
@@ -293,26 +293,26 @@ const InvestmentDetails = () => {
 
               <div className="mb-4">
                 <h5 style={{ color: accent }}>الوصف:</h5>
-                <p>{opportunity.description}</p>
+                <p>{itemData.description}</p>
               </div>
 
               <Row className="mb-4">
                 <Col md={6}>
-                  <p>📍 <strong>العنوان:</strong> {opportunity.address}</p>
-                  <p>📅 <strong>تاريخ البدء:</strong> {formatDate(opportunity.start_date)}</p>
-                  <p>🔄 <strong>تكرار الدفع:</strong> {translateFrequency(opportunity.payout_frequency)}</p>
-                  <p>📈 <strong>نسبة الربح:</strong> {opportunity.profit_percentage}%</p>
+                  <p>📍 <strong>العنوان:</strong> {itemData.address}</p>
+                  <p>📅 <strong>تاريخ البدء:</strong> {itemData.opportunity_strtup}</p>
+                  <p>🔄 <strong>تكرار الدفع:</strong> {translateFrequency(itemData.opportunity_payout_frequency)}</p>
+                  <p>📈 <strong>نسبة الربح:</strong> {itemData.opportunity_profit_percentage}%</p>
                 </Col>
                 <Col md={6}>
-                  <p>💰 <strong>المبلغ المستهدف:</strong> {formatCurrency(opportunity.target_amount)}</p>
-                  <p>📉 <strong>الحد الأدنى للمساهمة:</strong> {formatCurrency(opportunity.minimum_target)}</p>
-                  <p>💹 <strong>المبلغ المجموع:</strong> {formatCurrency(opportunity.collected_amount)}</p>
-                  {opportunity.feasibility_pdf && (
+                  <p>💰 <strong>المبلغ المستهدف:</strong> {formatCurrency(itemData.target_amount)}</p>
+                  <p>📉 <strong>الحد الأدنى للمساهمة:</strong> {formatCurrency(itemData.minimum_target)}</p>
+                  <p>💹 <strong>المبلغ المجموع:</strong> {formatCurrency(itemData.collected_amount)}</p>
+                  {itemData.factory_feasibility_pdf && (
                     <p>
                       📄 <strong>دراسة الجدوى:</strong>{' '}
-                      <a 
-                        href={opportunity.feasibility_pdf} 
-                        target="_blank" 
+                      <a
+                        href={itemData.factory_feasibility_pdf}
+                        target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: accent }}
                       >
@@ -374,6 +374,7 @@ const InvestmentDetails = () => {
                 </Card>
 
                 {comments.map((comment, index) => (
+
                   <Card key={index} className="mb-3" style={{
                     color: "white",
                     backgroundColor: primaryDark,
@@ -412,6 +413,25 @@ const InvestmentDetails = () => {
         dir="rtl"
         contentClassName="bg-dark text-light"
       >
+        {showMessage && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            width: '100%',
+            maxWidth: '600px',
+            padding: '0 15px'
+          }}>
+            <Message
+              coler={messageColor}
+              show={showMessage}
+              message={message}
+              onClose={() => setShowMessage(false)}
+            />
+          </div>
+        )}
         <Modal.Header closeButton closeVariant="white" className="border-secondary">
           <Modal.Title className="w-100 text-center" style={{ color: accent }}>
             استثمار في الفرصة
@@ -421,24 +441,24 @@ const InvestmentDetails = () => {
         <Modal.Body>
           <div className="text-center mb-4">
             <h5>{opportunity.name}</h5>
-            <p className="text-muted">الحد الأدنى للمساهمة: {formatCurrency(opportunity.minimum_target)}</p>
+            <p>الحد الأدنى للمساهمة: ${itemData.minimum_target}</p>
           </div>
 
           <Form>
             <Form.Group controlId="investmentAmount">
-              <Form.Label style={{ color: accent }}>المبلغ المراد استثماره (ريال)</Form.Label>
+              <Form.Label style={{ color: accent }}>المبلغ المراد استثماره (دولار)</Form.Label>
               <Form.Control
                 type="number"
                 value={investmentAmount}
                 onChange={(e) => setInvestmentAmount(e.target.value)}
                 min="200"
                 step="100"
-                placeholder="أدخل المبلغ"
+                placeholder="أدخل المبلغ $"
                 className="bg-secondary border-secondary text-light"
                 required
               />
               <Form.Text className="text-warning">
-                يجب أن لا يقل المبلغ عن {formatCurrency(opportunity.minimum_target)}
+                يجب أن لا يقل المبلغ عن {formatCurrency(itemData.minimum_target)}
               </Form.Text>
             </Form.Group>
           </Form>

@@ -10,7 +10,7 @@
     --primary-glow: #2A2C33; /* توهج للخلفية */
     --text-hover: #FFFFFF; /* نص أكثر سطوعاً عند التفاعل */
   }
-  
+
   /* تخصيصات Bootstrap */
   .bg-primary-dark {
     background-color: var(--primary-dark) !important;
