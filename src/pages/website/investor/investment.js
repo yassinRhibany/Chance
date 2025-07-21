@@ -185,8 +185,8 @@ const Investment = () => {
                         <div className="mb-3">
                           <h6 style={{ color: accent }}>مستوى الإنجاز:</h6>
                           <ProgressBar
-                            now={opportunity.collected_amount}
-                            label={`${opportunity.collected_amount}%`}
+                            now={(opportunity.collected_amount/opportunity.target_amount)*100}
+                            label={`${(opportunity.collected_amount/opportunity.target_amount)*100}%`}
                             // variant="#7CB2422"
                             style={{ height: '20px' }}
                           />

@@ -190,7 +190,7 @@ const InvestmentDetails = () => {
       setMessage('تمت عملية الاستثمار بنجاح');
       setMessageColor('#28A745');
       setShowMessage(true);
-      setTimeout(() => setShowMessage(false), 5000);
+       setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
 
     } catch (err) {
       console.error("Full Error:", err);
@@ -203,7 +203,7 @@ const InvestmentDetails = () => {
 
       setMessageColor('#DC3545');
       setShowMessage(true);
-      // setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
+      setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
 
     }
   };
@@ -326,8 +326,8 @@ const InvestmentDetails = () => {
               <div className="mb-4">
                 <h5 style={{ color: accent }}>مستوى الإنجاز:</h5>
                 <ProgressBar
-                  now={opportunity.progress}
-                  label={`${opportunity.progress}%`}
+                  now={(itemData.collected_amount/itemData.target_amount)*100}
+                  label={`${(itemData.collected_amount/itemData.target_amount)*100}%`}
                   style={{ height: '30px' }}
                   variant="warning"
                 />
