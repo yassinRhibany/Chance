@@ -36,6 +36,7 @@ const MyFactories = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user } = useAuth();
+  console.log(user.token)
   const API_URL = 'http://127.0.0.1:8000/api';
 
   const formatDateForDisplay = (date) => {
@@ -84,7 +85,14 @@ const MyFactories = () => {
           status: factory.status?.toString() || 'غير محدد',
           address: factory.address?.toString() || 'غير محدد',
           feasibility_pdf: factory.feasibility_pdf || null,
-          registeredDate: formatDateForDisplay(factory.registeredDate)
+          registeredDate: formatDateForDisplay(factory.registeredDate),
+          user_id: factory.user_id || 'غير محدد',
+          category_id: factory.category_id || 'غير محدد',
+          user_id: factory.user_id || 'غير محدد',
+          is_active: factory.is_active || 'غير محدد',
+          created_at: factory.created_at || 'غير محدد',
+          updated_at: factory.updated_at || 'غير محدد',
+          category: factory.category.name || 'غير محدد'
         }));
 
         setFactories(processedFactories);
@@ -98,6 +106,8 @@ const MyFactories = () => {
 
     if (user?.token) fetchFactories();
   }, [user]);
+
+
 
   const filteredFactories = factories.filter(factory => {
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -198,8 +208,8 @@ const MyFactories = () => {
       }
 
       // Validate required fields
-      if (!opportunityData.target_amount || !opportunityData.minimum_target || 
-          !opportunityData.strtup || !opportunityData.profit_percentage) {
+      if (!opportunityData.target_amount || !opportunityData.minimum_target ||
+        !opportunityData.strtup || !opportunityData.profit_percentage) {
         alert('الرجاء إدخال جميع الحقول المطلوبة');
         return;
       }
@@ -222,7 +232,7 @@ const MyFactories = () => {
       setMessage('تمت إضافة الفرصة الاستثمارية بنجاح');
       setMessageColor('#198754');
       setShowMessage(true);
-      
+
       // Reset form
       setOpportunityData({
         target_amount: '',
@@ -232,7 +242,7 @@ const MyFactories = () => {
         profit_percentage: '',
         descrption: ''
       });
-      
+
       // Refresh data
       setTimeout(() => {
         window.location.reload();
@@ -240,7 +250,7 @@ const MyFactories = () => {
 
     } catch (error) {
       console.error('Error:', error);
-      
+
       if (error.response) {
         switch (error.response.status) {
           case 401:
@@ -268,12 +278,12 @@ const MyFactories = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    const processedValue = 
+
+    const processedValue =
       name === 'target_amount' || name === 'minimum_target' || name === 'profit_percentage'
         ? Number(value)
         : value;
-    
+
     setOpportunityData(prev => ({
       ...prev,
       [name]: processedValue
@@ -452,20 +462,7 @@ const MyFactories = () => {
                           <FaEdit />
                         </Button>
                       )}
-                      {factory.status === 'approved' && (
-                        <Button
-                          variant="outline-success"
-                          size="sm"
-                          className="me-2"
-                          onClick={() => {
-                            setCurrentFactory(factory);
-                            setShowAddOpportunityModal(true);
-                          }}
-                          style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}
-                        >
-                          <FaPlus />
-                        </Button>
-                      )}
+
                     </div>
                   </div>
 
@@ -486,6 +483,33 @@ const MyFactories = () => {
                           {factory.feasibility_pdf?.name || 'لا يوجد ملف'}
                         </a>
                       </div>
+                    </div>
+                    <div style={{ padding: "20px 10px", display: "flex" }}>
+
+                      {factory.status === 'approved' && (
+                        <Button
+                          variant="outline-success"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => {
+                            setCurrentFactory(factory);
+                            setShowAddOpportunityModal(true);
+                          }}
+                          style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}
+                        >
+                          <FaPlus /> اضافة فرصة
+                        </Button>
+                      )}
+                      <Button
+                        as={NavLink}
+                        to={"/factory/FactoryDetails"}
+                        variant="primary"
+                        className="me-2"
+                        state={{ item: factory }}
+                        
+                      >
+                        <FaInfoCircle className="me-2" /> عرض تفاصيل المصنع
+                      </Button>
                     </div>
                   </div>
                 </Card.Body>
@@ -607,16 +631,16 @@ const MyFactories = () => {
               </Form.Group>
 
               <div className="d-flex justify-content-end">
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   className="me-2"
                   onClick={() => setShowAddOpportunityModal(false)}
                   style={{ backgroundColor: 'var(--secondary-dark)', borderColor: 'var(--accent)', color: 'var(--light-text)' }}
                 >
                   إلغاء
                 </Button>
-                <Button 
-                  variant="primary" 
+                <Button
+                  variant="primary"
                   type="submit"
                   disabled={isSubmitting}
                   style={{ backgroundColor: 'var(--accent)', borderColor: 'var(--accent)', color: 'var(--primary-dark)' }}

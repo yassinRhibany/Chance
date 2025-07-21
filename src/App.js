@@ -34,7 +34,7 @@ import InvestorTradingPlatform from './pages/website/investor/BuyAndSell';
 import InvestmentPortfolio from './pages/website/investor/BuyAndSell';
 import MarketTrading from './pages/website/investor/MarketTrading';
 import MyFactoryes from './pages/website/FactoryOwner/MyFactoryes';
-import FactoryDetails from './pages/website/investor/investmentrecord';
+import FactoryDetails from './pages/website/FactoryOwner/FactoryDetails';
 import InvestmentDetails from './pages/website/investor/card';
 
 export default function App() {
@@ -98,6 +98,7 @@ export default function App() {
                   <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
                   <Route path="/factory/wallet" element={<Wallet />} />
                   <Route path="/factory/MyFactoryes" element={<MyFactoryes />} />
+                  <Route path="/factory/FactoryDetails" element={<FactoryDetails />} />
                 </Route>
 
 

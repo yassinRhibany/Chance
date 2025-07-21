@@ -27,8 +27,8 @@ export default function Header() {
         setShowSuccess(true)
         // توجيه المستخدم بعد 3 ثواني
         setTimeout(() => {
-            Navigate('/');
-        }, 3000);
+            Navigate('/login');
+        },0);
 
     }
     return (

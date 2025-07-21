@@ -559,7 +559,7 @@ const token=user.token;
             </Row>
             
             {/* Factories table */}
-            <div className="table-responsive">
+            <div style={{height: "50vh"}} className="table-responsive">
               <Table hover className="mb-0" variant="dark">
                 <thead style={{ backgroundColor: '#2d2d2d' }}>
                   <tr>
@@ -605,7 +605,7 @@ const token=user.token;
                             <span className="text-muted">لا يوجد ملف</span>
                           )}
                         </td>
-                        <td className="text-center">
+                        <td  className="text-center">
                           <Dropdown>
                             <Dropdown.Toggle variant="outline-secondary" size="sm" id="dropdown-actions">
                               <FaEllipsisV />
