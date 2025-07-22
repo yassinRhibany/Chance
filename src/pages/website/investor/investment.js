@@ -19,7 +19,7 @@ const Investment = () => {
   const [showMessage, setShowMessage] = useState(false);
 
   const { user } = useAuth();
-  console.log(user)
+  // console.log(user)
   const API_URL = 'http://127.0.0.1:8000/api';
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const Investment = () => {
           `${API_URL}/InvestmentOpprtunities/getAcceptedOpportunitiesWithDetails`,
           config
         );
-        console.log(response.data);
+        // console.log(response.data);
 
         const apiData = response.data;
 
@@ -187,7 +187,8 @@ const Investment = () => {
                           <ProgressBar
                             now={(opportunity.collected_amount/opportunity.target_amount)*100}
                             label={`${(opportunity.collected_amount/opportunity.target_amount)*100}%`}
-                            // variant="#7CB2422"
+                           variant="success"
+                           animated
                             style={{ height: '20px' }}
                           />
 

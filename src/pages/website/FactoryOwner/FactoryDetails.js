@@ -10,7 +10,7 @@ const FactoryDetails = () => {
     const { user } = useAuth();
     const { item } = state;
     const navigate = useNavigate();
-    
+
     const [images, setImages] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
@@ -27,13 +27,13 @@ const FactoryDetails = () => {
                 const response = await axios.get(
                     `http://127.0.0.1:8000/api/InvestmentOpprtunities/getFactoryOpportunities/${item.id}`,
                     {
-                        headers: { 
+                        headers: {
                             'Authorization': `Bearer ${user.token}`,
                             'Accept': 'application/json'
                         }
                     }
                 );
-                
+
                 if (response.data && response.data.opportunities) {
                     setOpportunities(response.data.opportunities);
                 } else {
@@ -55,7 +55,7 @@ const FactoryDetails = () => {
     //     const fetchImages = async () => {
     //         try {
     //             const response = await axios.get(
-    //                 `http://127.0.0.1:8000/api/images/factoryImages/${item.id}`,
+    //                 `http://127.0.0.1:8000/api/images/getFactoryImages/${item.id}`,
     //                 {
     //                     headers: { 'Authorization': `Bearer ${user.token}` }
     //                 }
@@ -71,85 +71,85 @@ const FactoryDetails = () => {
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
-        
+
         // التحقق من أنواع الملفات
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
         const validFiles = files.filter(file => allowedTypes.includes(file.type));
-        
+
         if (validFiles.length !== files.length) {
             setError('بعض الملفات ليست صوراً مدعومة (JPEG, PNG, GIF فقط)');
         }
-        
+
         setSelectedFiles(validFiles);
     };
 
     const handleUpload = async () => {
-    if (!selectedFiles.length) {
-        setError('الرجاء اختيار صورة واحدة على الأقل');
-        return;
-    }
-
-    setUploading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-        const formData = new FormData();
-        
-        // إضافة الصورة (يجب أن يكون المفتاح 'image' كما يتوقع الخادم)
-        formData.append('image', selectedFiles[0]); // استخدمنا [0] لأول ملف فقط
-        
-        // إضافة الـ ID (إذا كان الخادم يتوقعه في FormData وليس في URL)
-        // formData.append('id', item.id);
-
-        const response = await axios.post(
-            `http://127.0.0.1:8000/api/images/uploadFactoryImage/${item.id}`,
-            formData,
-            {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'multipart/form-data'
-                }
-            }
-        );
-console.log(response)
-        if (response.status===200) {
-            // تحديث حالة الصور بناءً على استجابة الخادم
-            const newImage = response.data.image; // أو أي هيكل بيانات يعيده الخادم
-            // setImages([...images, newImage]);
-            setSuccess('تم رفع الصورة بنجاح');
-            setSelectedFiles([]);
-        } 
-            // throw new Error(response.data.message || 'فشل في رفع الصورة');
-        // }
-    } catch (err) {
-        let errorMessage = 'فشل في رفع الصورة';
-        
-        if (err.response) {
-            // معالجة أخطاء التحقق من الصحة 422
-            if (err.response.status === 422) {
-                errorMessage = 'بيانات غير صالحة: ';
-                if (err.response.data.errors) {
-                    errorMessage += Object.values(err.response.data.errors).flat().join(', ');
-                } else {
-                    errorMessage += err.response.data.message || 'لا توجد تفاصيل إضافية';
-                }
-            } else {
-                errorMessage = err.response.data.message || errorMessage;
-            }
+        if (!selectedFiles.length) {
+            setError('الرجاء اختيار صورة واحدة على الأقل');
+            return;
         }
-        console.log(err)
-        setError(errorMessage);
-        console.error('تفاصيل الخطأ:', {
-            status: err.response?.status,
-            data: err.response?.data,
-            config: err.config
-        });
-    } finally {
-        setUploading(false);
-    }
-};
+
+        setUploading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const formData = new FormData();
+
+            // إضافة الصورة (يجب أن يكون المفتاح 'image' كما يتوقع الخادم)
+            formData.append('image', selectedFiles[0]); // استخدمنا [0] لأول ملف فقط
+
+            // إضافة الـ ID (إذا كان الخادم يتوقعه في FormData وليس في URL)
+            // formData.append('id', item.id);
+
+            const response = await axios.post(
+                `http://127.0.0.1:8000/api/images/uploadFactoryImage/${item.id}`,
+                formData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+            console.log(response)
+            if (response.status === 200) {
+                // تحديث حالة الصور بناءً على استجابة الخادم
+                const newImage = response.data.image; // أو أي هيكل بيانات يعيده الخادم
+                // setImages([...images, newImage]);
+                setSuccess('تم رفع الصورة بنجاح');
+                setSelectedFiles([]);
+            }
+            // throw new Error(response.data.message || 'فشل في رفع الصورة');
+            // }
+        } catch (err) {
+            let errorMessage = 'فشل في رفع الصورة';
+
+            if (err.response) {
+                // معالجة أخطاء التحقق من الصحة 422
+                if (err.response.status === 422) {
+                    errorMessage = 'بيانات غير صالحة: ';
+                    if (err.response.data.errors) {
+                        errorMessage += Object.values(err.response.data.errors).flat().join(', ');
+                    } else {
+                        errorMessage += err.response.data.message || 'لا توجد تفاصيل إضافية';
+                    }
+                } else {
+                    errorMessage = err.response.data.message || errorMessage;
+                }
+            }
+            console.log(err)
+            setError(errorMessage);
+            console.error('تفاصيل الخطأ:', {
+                status: err.response?.status,
+                data: err.response?.data,
+                config: err.config
+            });
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleDeleteImage = async (imageId) => {
         try {
@@ -172,16 +172,25 @@ console.log(response)
             'approved': 'success',
             'reject': 'danger',
             'pending': 'warning',
-            'نشط': 'success',
-            'معلق': 'warning',
+            '1': 'success',
+            '0': 'warning',
             'مكتمل': 'primary'
         };
         return statusMap[status] || 'secondary';
     };
 
+    const IsActive = (state) => {
+        if (state = 1)
+            return 'نشط'
+        else
+            return 'غير نشط'
+    }
+
     const calculateProgress = (collected, target) => {
-        if (!collected || !target || target === 0) return 0;
-        return (parseFloat(collected) / parseFloat(target)) * 100;
+        if (!collected || !target) return 0;
+        const collectedNum = parseFloat(collected);
+        const targetNum = parseFloat(target);
+        return Math.min(Math.round((collectedNum / targetNum) * 100), 100);
     };
 
     const formatCurrency = (amount) => {
@@ -351,7 +360,14 @@ console.log(response)
                                             <Row>
                                                 <Col md={4} className="mb-3">
                                                     <div className="text-light">حالة النشاط:</div>
-                                                    <div className="fw-bold text-light">{item.is_active}</div>
+                                                    <div className="fw-bold text-light">
+
+                                                        <Badge bg={getStatusBadge(item.is_active)} className="fs-6">
+                                                       {IsActive(item.is_active)}
+                                                        </Badge>
+                                                      
+
+                                                    </div>
                                                 </Col>
                                                 <Col md={4} className="mb-3">
                                                     <div className="text-light">تاريخ الإنشاء:</div>
@@ -406,19 +422,19 @@ console.log(response)
                                                     <Col md={4}>
                                                         <div className="mb-1">
                                                             <FaMoneyBillWave className="me-2" />
-                                                            <strong>المبلغ المستهدف:</strong> {formatCurrency(opportunity.target_amount)} ر.س
+                                                            <strong>المبلغ المستهدف:</strong> {formatCurrency(opportunity.target_amount)} $
                                                         </div>
                                                     </Col>
                                                     <Col md={4}>
                                                         <div className="mb-1">
                                                             <FaMoneyBillWave className="me-2" />
-                                                            <strong>المبلغ المجموع:</strong> {formatCurrency(opportunity.collected_amount)} ر.س
+                                                            <strong>المبلغ المجموع:</strong> {formatCurrency(opportunity.collected_amount)} $
                                                         </div>
                                                     </Col>
                                                     <Col md={4}>
                                                         <div className="mb-1">
                                                             <FaMoneyBillWave className="me-2" />
-                                                            <strong>الحد الأدنى:</strong> {formatCurrency(opportunity.minimum_target)} ر.س
+                                                            <strong>الحد الأدنى:</strong> {formatCurrency(opportunity.minimum_target)} $
                                                         </div>
                                                     </Col>
                                                 </Row>

@@ -25,7 +25,7 @@ const InvestmentDetails = () => {
   const API_URL = 'http://127.0.0.1:8000/api';
   const { state } = useLocation();
   const { itemData } = state;
-console.log(user.token)
+  console.log(user.token)
   // الألوان المخصصة
   const primaryDark = '#1D1E22';
   const accent = '#FEDA6A';
@@ -43,68 +43,68 @@ console.log(user.token)
   const [message, setMessage] = useState('');
   const [messageColor, setMessageColor] = useState('');
   const [showMessage, setShowMessage] = useState(false);
- 
 
-// useEffect(() => {
-//     const fetchOpportunityDetails = async () => {
-//       try {
-//         setLoading(true);
-//         setError(null);
 
-//         if (!user?.token) {
-//           throw new Error('يجب تسجيل الدخول أولاً');
-//         }
+  // useEffect(() => {
+  //     const fetchOpportunityDetails = async () => {
+  //       try {
+  //         setLoading(true);
+  //         setError(null);
 
-//         const config = {
-//           headers: {
-//             'Authorization': `Bearer ${user.token}`,
-//             'Content-Type': 'application/json'
-//           }
-//         };
+  //         if (!user?.token) {
+  //           throw new Error('يجب تسجيل الدخول أولاً');
+  //         }
 
-//         const response = await axios.get(
-//           `${API_URL}/InvestmentOpprtunities/opprtuntybyid/${id}`,
-//           config
-//         );
-        
-//         if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-//           throw new Error('تنسيق البيانات غير صحيح أو لا توجد بيانات متاحة');
-//         }
+  //         const config = {
+  //           headers: {
+  //             'Authorization': `Bearer ${user.token}`,
+  //             'Content-Type': 'application/json'
+  //           }
+  //         };
 
-    
-//           const apiData = response.data[0];
-          
-//           const formattedOpportunity = {
-//             id: apiData.id,
-//             user_id: apiData.user_id || 'غير معروف',
-//             factory_id: apiData.factory_id || 'غير معروف',
-//             description: apiData.descrption || 'لا يوجد وصف متاح',
-//             // image: `https://source.unsplash.com/random/800x600?factory=${apiData.id}`,
-//             target_amount: apiData.target_amount,
-//             minimum_target: apiData.minimum_target,
-//             collected_amount: apiData.collected_amount,
-//             start_date: apiData.strtup,
-//             payout_frequency: apiData.payout_frequency,
-//             profit_percentage: apiData.profit_percentage,
-//             progress: calculateProgress(apiData.collected_amount, apiData.target_amount)
-//           };
+  //         const response = await axios.get(
+  //           `${API_URL}/InvestmentOpprtunities/opprtuntybyid/${id}`,
+  //           config
+  //         );
 
-//           setOpportunity(formattedOpportunity);
+  //         if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+  //           throw new Error('تنسيق البيانات غير صحيح أو لا توجد بيانات متاحة');
+  //         }
 
-//         setLoading(false);
 
-//       } catch (err) {
-//         const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب البيانات';
-//         setError(errorMsg);
-//         setMessage('حدث خطأ أثناء جلب البيانات');
-//         setMessageColor('#DC3545');
-//         setShowMessage(true);
-//         setLoading(false);
-//       }
-//     };
+  //           const apiData = response.data[0];
 
-//     fetchOpportunityDetails();
-//   }, [id, user]);
+  //           const formattedOpportunity = {
+  //             id: apiData.id,
+  //             user_id: apiData.user_id || 'غير معروف',
+  //             factory_id: apiData.factory_id || 'غير معروف',
+  //             description: apiData.descrption || 'لا يوجد وصف متاح',
+  //             // image: `https://source.unsplash.com/random/800x600?factory=${apiData.id}`,
+  //             target_amount: apiData.target_amount,
+  //             minimum_target: apiData.minimum_target,
+  //             collected_amount: apiData.collected_amount,
+  //             start_date: apiData.strtup,
+  //             payout_frequency: apiData.payout_frequency,
+  //             profit_percentage: apiData.profit_percentage,
+  //             progress: calculateProgress(apiData.collected_amount, apiData.target_amount)
+  //           };
+
+  //           setOpportunity(formattedOpportunity);
+
+  //         setLoading(false);
+
+  //       } catch (err) {
+  //         const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب البيانات';
+  //         setError(errorMsg);
+  //         setMessage('حدث خطأ أثناء جلب البيانات');
+  //         setMessageColor('#DC3545');
+  //         setShowMessage(true);
+  //         setLoading(false);
+  //       }
+  //     };
+
+  //     fetchOpportunityDetails();
+  //   }, [id, user]);
 
   // دوال مساعدة
   const translateFrequency = (freq) => {
@@ -117,14 +117,14 @@ console.log(user.token)
     return frequencies[freq] || freq;
   };
 
-const formatCurrency = (amount) => {
+  const formatCurrency = (amount) => {
     if (!amount) return '$0.00';
     const num = parseFloat(amount);
     return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
+      style: 'currency',
+      currency: 'USD'
     }).format(num);
-};
+  };
 
   // const formatDate = (dateString) => {
   //   if (!dateString) return 'غير محدد';
@@ -132,12 +132,12 @@ const formatCurrency = (amount) => {
   //   return new Date(dateString).toLocaleDateString('ar-SA', options);
   // };
 
-  // const calculateProgress = (collected, target) => {
-  //   if (!collected || !target) return 0;
-  //   const collectedNum = parseFloat(collected);
-  //   const targetNum = parseFloat(target);
-  //   return Math.min(Math.round((collectedNum / targetNum) * 100), 100);
-  // };
+  const calculateProgress = (collected, target) => {
+    if (!collected || !target) return 0;
+    const collectedNum = parseFloat(collected);
+    const targetNum = parseFloat(target);
+    return Math.min(Math.round((collectedNum / targetNum) * 100), 100);
+  };
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
@@ -152,60 +152,60 @@ const formatCurrency = (amount) => {
   };
 
   const handleInvestSubmit = async () => {
-  try {
-    if (!investmentAmount || parseFloat(investmentAmount) < 200) {
-      setMessage('المبلغ يجب أن لا يقل عن 200 ريال');
+    try {
+      if (!investmentAmount || parseFloat(investmentAmount) < 200) {
+        setMessage('المبلغ يجب أن لا يقل عن 200 ريال');
+        setMessageColor('#DC3545');
+        setShowMessage(true);
+        return;
+      }
+
+      // إنشاء FormData وإضافة الحقول
+      const formData = new FormData();
+      formData.append('opprtunty_id', itemData.id); // التأكد من أن الاسم مطابق لما يتوقعه الخادم
+      formData.append('amount', investmentAmount); // القيمة كـ string أو number
+
+      // لا تحدد Content-Type يدويًا عند استخدام FormData (يضبطه axios تلقائيًا)
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          // 'Content-Type': 'multipart/form-data' // ⚠️ لا تضف هذا السطر! axios يضبطه تلقائيًا
+        }
+      };
+
+      console.log("FormData Contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value); // تأكد من أن البيانات مضاف بشكل صحيح
+      }
+
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/InvestmentOpprtunities/confirmPurchase`,
+        formData,
+        config
+      );
+
+      console.log("Response:", response.data);
+      setShowInvestModal(false);
+      setInvestmentAmount('');
+      setMessage('تمت عملية الاستثمار بنجاح');
+      setMessageColor('#28A745');
+      setShowMessage(true);
+      setTimeout(() => setShowMessage(false), 5000);
+
+    } catch (err) {
+      console.error("Full Error:", err);
+      const errorDetails = err.response?.data?.message;
+      if (errorDetails == "Insufficient wallet balance")
+        setMessage("لا يوجد رصيد كافي");
+
+      else
+        setMessage(errorDetails);
       setMessageColor('#DC3545');
       setShowMessage(true);
-      return;
+      setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
+
     }
-
-    // إنشاء FormData وإضافة الحقول
-    const formData = new FormData();
-    formData.append('opprtunty_id', itemData.id); // التأكد من أن الاسم مطابق لما يتوقعه الخادم
-    formData.append('amount', investmentAmount); // القيمة كـ string أو number
-
-    // لا تحدد Content-Type يدويًا عند استخدام FormData (يضبطه axios تلقائيًا)
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${user.token}`,
-        // 'Content-Type': 'multipart/form-data' // ⚠️ لا تضف هذا السطر! axios يضبطه تلقائيًا
-      }
-    };
-
-    console.log("FormData Contents:");
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value); // تأكد من أن البيانات مضاف بشكل صحيح
-    }
-
-    const response = await axios.post(
-      `http://127.0.0.1:8000/api/InvestmentOpprtunities/confirmPurchase`,
-      formData,
-      config
-    );
-
-    console.log("Response:", response.data);
-    setShowInvestModal(false);
-    setInvestmentAmount('');
-    setMessage('تمت عملية الاستثمار بنجاح');
-    setMessageColor('#28A745');
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 5000);
-
-  }  catch (err) {
-    console.error("Full Error:", err);
-    const errorDetails = err.response?.data?.message;
-    if (errorDetails=="Insufficient wallet balance")
-    setMessage("لا يوجد رصيد كافي");
-
-else
-    setMessage(errorDetails);
-    setMessageColor('#DC3545');
-    setShowMessage(true);
-    setTimeout(() => { setShowMessage(false) ;  navigate(0)} , 5000);
-   
-  }
-};
+  };
 
   if (loading) {
     return (
@@ -325,67 +325,14 @@ else
               <div className="mb-4">
                 <h5 style={{ color: accent }}>مستوى الإنجاز:</h5>
                 <ProgressBar
-                  now={(itemData.collected_amount/itemData.target_amount)*100}
-                  label={`${(itemData.collected_amount/itemData.target_amount)*100}%`}
+                  now={calculateProgress(itemData.collected_amount, itemData.target_amount)}
+                  label={`${calculateProgress(itemData.collected_amount, itemData.target_amount)}%`}
                   style={{ height: '30px' }}
-                  variant="warning"
+                  animated
+                  variant="success"
                 />
               </div>
-
-              <div className="mb-4">
-                <h5 style={{ color: accent }}>التعليقات:</h5>
-
-                <Card className="mb-4" style={{
-                  backgroundColor: primaryDark,
-                  border: `1px solid ${accent}`
-                }}>
-                  <Card.Body>
-                    <Form onSubmit={handleCommentSubmit}>
-                      <Form.Group controlId="commentForm">
-                        <Form.Control
-                          as="textarea"
-                          rows={3}
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          style={{
-                            backgroundColor: darkGray,
-                            color: lightText,
-                            border: `1px solid ${accent}`,
-                            marginBottom: '1rem'
-                          }}
-                          placeholder="أكتب تعليقك هنا..."
-                        />
-                        <Button
-                          type="submit"
-                          style={{
-                            backgroundColor: accent,
-                            borderColor: accent,
-                            color: primaryDark,
-                            fontWeight: 'bold'
-                          }}
-                          disabled={!commentText.trim()}
-                        >
-                          نشر التعليق
-                        </Button>
-                      </Form.Group>
-                    </Form>
-                  </Card.Body>
-                </Card>
-
-                {comments.map((comment, index) => (
-                  
-                  <Card key={index} className="mb-3" style={{
-                    color: "white",
-                    backgroundColor: primaryDark,
-                    border: `1px solid ${accent}`
-                  }}>
-                    <Card.Body>
-                      <Card.Title style={{ color: accent }}>{comment.user}</Card.Title>
-                      <Card.Text>{comment.text}</Card.Text>
-                    </Card.Body>
-                  </Card>
-                ))}
-              </div>
+ 
 
               <Button
                 onClick={() => setShowInvestModal(true)}
@@ -412,25 +359,25 @@ else
         dir="rtl"
         contentClassName="bg-dark text-light"
       >
-                  {showMessage && (
-            <div style={{
-              position: 'fixed',
-              top: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 9999,
-              width: '100%',
-              maxWidth: '600px',
-              padding: '0 15px'
-            }}>
-              <Message 
-                coler={messageColor}
-                show={showMessage}
-                message={message}
-                onClose={() => setShowMessage(false)}
-              />
-            </div>
-          )}
+        {showMessage && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            width: '100%',
+            maxWidth: '600px',
+            padding: '0 15px'
+          }}>
+            <Message
+              coler={messageColor}
+              show={showMessage}
+              message={message}
+              onClose={() => setShowMessage(false)}
+            />
+          </div>
+        )}
         <Modal.Header closeButton closeVariant="white" className="border-secondary">
           <Modal.Title className="w-100 text-center" style={{ color: accent }}>
             استثمار في الفرصة

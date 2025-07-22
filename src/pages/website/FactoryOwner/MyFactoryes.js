@@ -64,7 +64,7 @@ const MyFactories = () => {
         const response = await axios.get(`${API_URL}/factories/indexForUser`, {
           headers: { 'Authorization': `Bearer ${user.token}` }
         });
-
+console.log(response)
         let factoriesData = [];
         if (Array.isArray(response.data)) {
           factoriesData = response.data;
