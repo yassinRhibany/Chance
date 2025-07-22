@@ -62,11 +62,13 @@ export default function App() {
                 {/* مسارات المدير */}
                 <Route element={<AdminLayout />}>
                  <Route path='/Admin/AdminAccountsPage' element={<AdminAccountsPage/>}/>
-                 <Route path="UserDetailsPage" element={<UserDetailsPage />} />
+                 <Route path="/Admin/UserDetailsPage/:id" element={<UserDetailsPage />} />
                  <Route path="/Admin/AdminInvestmentPage" element={<AdminInvestmentPage />} />
                  <Route path="/Admin/AdminFactories" element={<AdminFactories />} />
                  <Route path="/Admin/AdminReturnes" element={<AdminReturnes/>} />
                  <Route path="/Admin/ReportsPage" element={<ReportsPage/>} />
+                 <Route path="/Admin/UserDetailsPage" element={<UserDetailsPage/>} />
+                 
                  
                 </Route>
 
@@ -77,10 +79,11 @@ export default function App() {
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
                   <Route path="/investor/investment/:id" element={<InvestmentDetails />} />
+                    <Route path="/Admin/UserDetailsPage" element={<UserDetailsPage/>} />
                  
                   
                  
-                  <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
+                  <Route path="/UserDetailsPage" element={<UserDetailsPage />} />
 
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />
                   <Route path="/investor/TrackReturnes" element={<TrackReturnes/>} />
@@ -99,6 +102,7 @@ export default function App() {
                   <Route path="/factory/wallet" element={<Wallet />} />
                   <Route path="/factory/MyFactoryes" element={<MyFactoryes />} />
                   <Route path="/factory/FactoryDetails" element={<FactoryDetails />} />
+                   <Route path="/UserDetailsPage" element={<UserDetailsPage />} />
                 </Route>
 
 

@@ -1,611 +1,237 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Container, Table, Form, Button, Badge, Pagination, 
-  Row, Col, Spinner
+  Container, 
+  Table, 
+  Form, 
+  Button, 
+  Badge, 
+  Pagination, 
+  Row, 
+  Col, 
+  Spinner, 
+  Alert
 } from 'react-bootstrap';
-import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-const AdminAccountsPage = () => {
-  // لوحة ألوان جديدة متنوعة وجذابة
-  const primaryDark = '#0f172a'; // لون خلفية داكن غني
-  const secondaryDark = '#1e293b'; // لون ثانوي داكن
-  const accentGold = '#fbbf24'; // لون ذهبي مميز
-  const accentBlue = '#60a5fa'; // لون أزرق جذاب
-  const accentTeal = '#2dd4bf'; // لون تركوازي منعش
-  const lightText = '#e2e8f0'; // نص فاتح
-  const lightGray = '#94a3b8'; // رمادي فاتح للتفاصيل
-
-  // بيانات وهمية للحسابات
-  const [accounts, setAccounts] = useState([]);
-  const [filteredAccounts, setFilteredAccounts] = useState([]);
+const AdminUsersPage = () => {
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [userTypeFilter, setUserTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8);
-  
-  // توليد بيانات وهمية عند تحميل الصفحة
+  const [itemsPerPage] = useState(10);
+  const navigate = useNavigate();
+
+  const colors = {
+    primary: '#3498db',
+    dark: '#2c3e50',
+    light: '#ecf0f1'
+  };
+
   useEffect(() => {
-    const mockAccounts = [
-      { id: 1, name: 'أحمد محمد', email: 'ahmed@example.com', type: 'investor', registrationDate: '2023-05-15', status: 'active' },
-      { id: 2, name: 'شركة الصناعات الحديثة', email: 'factory@example.com', type: 'factory_owner', registrationDate: '2023-04-20', status: 'active' },
-      { id: 3, name: 'سارة عبدالله', email: 'sara@example.com', type: 'investor', registrationDate: '2023-06-10', status: 'pending' },
-      { id: 4, name: 'مصنع الهدى', email: 'alhuda@example.com', type: 'factory_owner', registrationDate: '2023-03-05', status: 'active' },
-      { id: 5, name: 'عمر الرشيد', email: 'omar@example.com', type: 'investor', registrationDate: '2023-07-18', status: 'suspended' },
-      { id: 6, name: 'شركة التقنية المتطورة', email: 'tech@example.com', type: 'factory_owner', registrationDate: '2023-02-22', status: 'active' },
-      { id: 7, name: 'ليلى أحمد', email: 'leila@example.com', type: 'investor', registrationDate: '2023-08-01', status: 'pending' },
-      { id: 8, name: 'مصنع المستقبل', email: 'future@example.com', type: 'factory_owner', registrationDate: '2023-05-30', status: 'active' },
-      { id: 9, name: 'فاطمة السليم', email: 'fatima@example.com', type: 'investor', registrationDate: '2023-06-25', status: 'active' },
-      { id: 10, name: 'مصنع الأمل', email: 'hope@example.com', type: 'factory_owner', registrationDate: '2023-04-15', status: 'suspended' },
-      { id: 11, name: 'خالد سعيد', email: 'khaled@example.com', type: 'investor', registrationDate: '2023-09-05', status: 'active' },
-      { id: 12, name: 'مجموعة الصناعات الوطنية', email: 'national@example.com', type: 'factory_owner', registrationDate: '2023-01-30', status: 'pending' },
-    ];
-    
-    setAccounts(mockAccounts);
-    setFilteredAccounts(mockAccounts);
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        const response = await axios.get('http://127.0.0.1:8000/api/User/getUsers', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.data && Array.isArray(response.data)) {
+          const formattedUsers = response.data.map(user => ({
+            id: user.id,
+            name: user.name || 'غير معروف',
+            email: user.email || 'غير متوفر',
+            role: user.role === 1 ? 'مستثمر' : 'صاحب مصنع',
+            status: user.status || 'active',
+            wallet: user.wallet ? `${parseFloat(user.wallet).toFixed(2)}` : '0.00'
+          }));
+
+          setUsers(formattedUsers);
+          setFilteredUsers(formattedUsers);
+        } else {
+          throw new Error('تنسيق البيانات غير متوقع');
+        }
+      } catch (err) {
+        console.error('حدث خطأ أثناء جلب المستخدمين:', err);
+        setError(err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب بيانات المستخدمين');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, []);
-  
-  // تصفية الحسابات حسب البحث ونوع المستخدم
+
   useEffect(() => {
-    let result = accounts;
-    
-    if (searchTerm) {
-      result = result.filter(account => 
-        account.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        account.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    if (searchTerm.trim() === '') {
+      setFilteredUsers(users);
+      setCurrentPage(1);
+      return;
     }
-    
-    if (userTypeFilter !== 'all') {
-      result = result.filter(account => account.type === userTypeFilter);
-    }
-    
-    setFilteredAccounts(result);
+
+    const filtered = users.filter(user => 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    setFilteredUsers(filtered);
     setCurrentPage(1);
-  }, [searchTerm, userTypeFilter, accounts]);
-  
-  // حساب عدد الصفحات
-  const totalPages = Math.ceil(filteredAccounts.length / itemsPerPage);
-  
-  // الحصول على الحسابات للصفحة الحالية
-  const currentAccounts = filteredAccounts.slice(
+  }, [searchTerm, users]);
+
+  const handleEditUser = (userId) => {
+    navigate(`/Admin/UserDetailsPage/${userId}`);
+  };
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const currentUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  
-  // تغيير الصفحة
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-  
-  // تغيير نوع المستخدم
-  const handleUserTypeChange = (e) => {
-    setUserTypeFilter(e.target.value);
-  };
-  
-  // تغيير حالة الحساب
-  const toggleAccountStatus = (accountId) => {
-    setAccounts(accounts.map(account => {
-      if (account.id === accountId) {
-        let newStatus;
-        if (account.status === 'active') newStatus = 'suspended';
-        else if (account.status === 'suspended') newStatus = 'active';
-        else newStatus = account.status;
-        
-        return { ...account, status: newStatus };
-      }
-      return account;
-    }));
-  };
-  
-  // الحصول على لون البادج حسب الحالة
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'active':
-        return { bg: 'success', text: 'نشط' };
-      case 'pending':
-        return { bg: 'warning', text: 'قيد المراجعة' };
-      case 'suspended':
-        return { bg: 'danger', text: 'موقوف' };
-      default:
-        return { bg: 'secondary', text: status };
-    }
-  };
-  
-  // الحصول على نص نوع المستخدم
-  const getUserTypeText = (type) => {
-    switch (type) {
-      case 'investor':
-        return 'مستثمر';
-      case 'factory_owner':
-        return 'صاحب مصنع';
-      default:
-        return type;
-    }
-  };
-  
-  // الحصول على لون نوع المستخدم
-  const getUserTypeColor = (type) => {
-    switch (type) {
-      case 'investor':
-        return accentBlue;
-      case 'factory_owner':
-        return accentTeal;
-      default:
-        return lightGray;
-    }
-  };
-  
-  // الحصول على لون البطاقة حسب النوع
-  const getCardColor = (index) => {
-    const colors = [
-      'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-      'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-    ];
-    return colors[index % colors.length];
-  };
+
+  if (loading) {
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+        <Spinner animation="border" variant="primary" />
+        <span className="ms-3">جاري تحميل البيانات...</span>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="danger">
+          <Alert.Heading>حدث خطأ!</Alert.Heading>
+          <p>{error}</p>
+          <Button variant="outline-danger" onClick={() => window.location.reload()}>
+            إعادة المحاولة
+          </Button>
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
-    <Container fluid className="py-4" style={{ 
-      background: 'linear-gradient(135deg, #0c0f1d 0%, #1a1f33 100%)',
-      minHeight: '100vh',
-      color: lightText
-    }}>
+    <Container fluid className="py-4">
       <Container>
-        <div className="d-flex justify-content-between align-items-center mb-4 py-3">
-          <div>
-            <h2 style={{ 
-              color: accentGold,
-              fontWeight: 'bold',
-              textShadow: '0 0 10px rgba(251, 191, 36, 0.3)'
-            }}>
-              <i className="bi bi-people-fill me-3"></i>
-              إدارة حسابات المستخدمين
+        <Row className="mb-4 align-items-center">
+          <Col md={6}>
+            <h2 style={{ color: colors.dark }}>
+              <i className="bi bi-people-fill me-2"></i>
+              إدارة المستخدمين
             </h2>
-            <p className="mt-2" style={{ color: lightGray }}>
-              لوحة التحكم الشاملة لإدارة جميع حسابات المستخدمين في النظام
+            <p className="text-muted">
+              إجمالي المستخدمين: {filteredUsers.length}
             </p>
-          </div>
-          <div className="d-flex gap-2">
-            <Badge bg="secondary" className="px-3 py-2" style={{ 
-              background: 'rgba(30, 41, 59, 0.7)', 
-              border: `1px solid ${accentGold}`,
-              borderRadius: '10px'
-            }}>
-              المجموع: {filteredAccounts.length}
-            </Badge>
-            <Badge bg="primary" className="px-3 py-2" style={{ 
-              background: 'rgba(30, 41, 59, 0.7)', 
-              border: `1px solid ${accentBlue}`,
-              borderRadius: '10px'
-            }}>
-              صفحة {currentPage} من {totalPages}
-            </Badge>
-          </div>
-        </div>
-        
-        {/* أدوات البحث والتصفية */}
-        <div className="d-flex flex-column flex-md-row justify-content-between mb-4 gap-3">
-          <div className="d-flex flex-wrap gap-2">
-            <Form.Select 
-              value={userTypeFilter} 
-              onChange={handleUserTypeChange}
-              style={{ 
-                background: secondaryDark,
-                color: lightText,
-                border: `1px solid ${accentTeal}`,
-                width: '200px',
-                boxShadow: '0 0 8px rgba(45, 212, 191, 0.2)'
-              }}
-            >
-              <option value="all">جميع الحسابات</option>
-              <option value="investor">المستثمرون فقط</option>
-              <option value="factory_owner">أصحاب المصانع فقط</option>
-            </Form.Select>
-            
-            <Form.Control
-              type="text"
-              placeholder="ابحث بالاسم أو البريد..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ 
-                background: secondaryDark,
-                color: lightText,
-                border: `1px solid ${accentBlue}`,
-                width: '250px',
-                boxShadow: '0 0 8px rgba(96, 165, 250, 0.2)'
-              }}
-            />
-          </div>
-          
-          <Button 
-            variant="outline-warning"
-            className="d-flex align-items-center gap-2"
-            style={{
-              border: `1px solid ${accentGold}`,
-              color: accentGold,
-              fontWeight: 'bold',
-              background: 'rgba(251, 191, 36, 0.1)',
-              boxShadow: '0 0 8px rgba(251, 191, 36, 0.2)'
-            }}
-          >
-            <i className="bi bi-download"></i> تصدير البيانات
-          </Button>
-        </div>
-        
-        {/* جدول الحسابات */}
-        <div style={{ 
-          overflowX: 'auto',
-          borderRadius: '10px',
-          border: `1px solid ${secondaryDark}`,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)'
-        }}>
-          <Table hover style={{ 
-            margin: 0,
-            color: lightText,
-            background: secondaryDark
-          }}>
-            <thead style={{ background: 'rgba(15, 23, 42, 0.7)' }}>
+          </Col>
+          <Col md={6} className="text-md-end">
+            <Button variant="primary" className="me-2">
+              <i className="bi bi-plus-circle"></i> إضافة مستخدم
+            </Button>
+          </Col>
+        </Row>
+
+        <Row className="mb-4">
+          <Col md={6}>
+            <Form.Group controlId="searchUsers">
+              <Form.Control
+                type="text"
+                placeholder="ابحث عن مستخدم..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ borderColor: colors.primary }}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+
+        <div className="table-responsive">
+          <Table striped bordered hover>
+            <thead style={{ backgroundColor: colors.light }}>
               <tr>
-                <th style={{ color: accentGold, padding: '15px' }}>#</th>
-                <th style={{ color: accentGold, padding: '15px' }}>الاسم</th>
-                <th style={{ color: accentGold, padding: '15px' }}>البريد الإلكتروني</th>
-                <th style={{ color: accentGold, padding: '15px' }}>نوع الحساب</th>
-                <th style={{ color: accentGold, padding: '15px' }}>تاريخ التسجيل</th>
-                <th style={{ color: accentGold, padding: '15px' }}>الحالة</th>
-                <th style={{ color: accentGold, padding: '15px' }}>الإجراءات</th>
+                <th>#</th>
+                <th>الاسم</th>
+                <th>البريد الإلكتروني</th>
+                <th>نوع المستخدم</th>
+                <th>رصيد المحفظة</th>
+                <th>الحالة</th>
+                <th>الإجراءات</th>
               </tr>
             </thead>
             <tbody>
-              {currentAccounts.length > 0 ? (
-                currentAccounts.map((account, index) => (
-                  <tr key={account.id} style={{ 
-                    background: index % 2 === 0 ? 'rgba(30, 41, 59, 0.5)' : 'rgba(30, 41, 59, 0.3)',
-                    borderBottom: `1px solid ${secondaryDark}`
-                  }}>
-                    <td style={{ padding: '15px' }}>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                    <td style={{ padding: '15px' }}>{account.name}</td>
-                    <td style={{ padding: '15px' }}>{account.email}</td>
-                    <td style={{ padding: '15px' }}>
+              {currentUsers.length > 0 ? (
+                currentUsers.map((user, index) => (
+                  <tr key={user.id}>
+                    <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>{user.role}</td>
+                    <td>{user.wallet} ر.س</td>
+                    <td>
                       <Badge 
-                        style={{
-                          background: 'transparent',
-                          border: `1px solid ${getUserTypeColor(account.type)}`,
-                          color: getUserTypeColor(account.type),
-                          padding: '6px 12px',
-                          borderRadius: '20px'
-                        }}
+                        bg={user.status === 'active' ? 'success' : 'danger'}
+                        style={{ fontSize: '0.9rem' }}
                       >
-                        {getUserTypeText(account.type)}
+                        {user.status === 'active' ? 'نشط' : 'موقوف'}
                       </Badge>
                     </td>
-                    <td style={{ padding: '15px' }}>{account.registrationDate}</td>
-                    <td style={{ padding: '15px' }}>
-                      <Badge 
-                        style={{
-                          background: 'transparent',
-                          border: `1px solid ${getStatusBadge(account.status).bg === 'success' ? '#10b981' : 
-                                   getStatusBadge(account.status).bg === 'warning' ? '#f59e0b' : 
-                                   '#ef4444'}`,
-                          color: getStatusBadge(account.status).bg === 'success' ? '#10b981' : 
-                                 getStatusBadge(account.status).bg === 'warning' ? '#f59e0b' : 
-                                 '#ef4444',
-                          padding: '6px 12px',
-                          borderRadius: '20px'
-                        }}
+                    <td>
+                      <Button 
+                        variant="outline-primary" 
+                        size="sm"
+                        onClick={() => handleEditUser(user.id)}
                       >
-                        {getStatusBadge(account.status).text}
-                      </Badge>
-                    </td>
-                    <td style={{ padding: '15px' }}>
-                      <div className="d-flex gap-2">
-                        <Button  as ={NavLink} to={`/UserDetailsPage`}
-                          variant="outline-light" 
-                          size="sm"
-                          className="d-flex align-items-center gap-1"
-                          style={{
-                            border: `1px solid ${accentBlue}`,
-                            color: accentBlue,
-                            background: 'rgba(96, 165, 250, 0.1)'
-                          }}
-                        >
-                          <i className="bi bi-eye"></i> تفاصيل
-                        </Button>
-                        <Button 
-                          variant={
-                            account.status === 'suspended' ? 'outline-success' : 'outline-danger'
-                          } 
-                          size="sm"
-                          onClick={() => toggleAccountStatus(account.id)}
-                          className="d-flex align-items-center gap-1"
-                          style={{
-                            border: `1px solid ${account.status === 'suspended' ? '#10b981' : '#ef4444'}`,
-                            color: account.status === 'suspended' ? '#10b981' : '#ef4444',
-                            background: account.status === 'suspended' ? 
-                              'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'
-                          }}
-                        >
-                          {account.status === 'suspended' ? (
-                            <>
-                              <i className="bi bi-check-circle"></i> تفعيل
-                            </>
-                          ) : account.status === 'active' ? (
-                            <>
-                              <i className="bi bi-slash-circle"></i> تعليق
-                            </>
-                          ) : (
-                            <>
-                              <i className="bi bi-check-circle"></i> تفعيل
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                        <i className="bi bi-pencil"></i> تعديل
+                      </Button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td colSpan="7" className="text-center py-5">
-                    <i className="bi bi-search" style={{ fontSize: '3rem', color: accentGold }}></i>
-                    <h4 className="mt-3" style={{ color: accentGold }}>
-                      لا توجد حسابات تطابق معايير البحث
-                    </h4>
-                    <p style={{ color: lightGray }}>
-                      حاول تغيير فلتر البحث أو استخدام مصطلح بحث مختلف
-                    </p>
+                    <i className="bi bi-exclamation-circle" style={{ fontSize: '3rem', color: colors.warning }}></i>
+                    <h4 className="mt-3">لا توجد نتائج</h4>
+                    <p className="text-muted">لم يتم العثور على مستخدمين مطابقين لبحثك</p>
                   </td>
                 </tr>
               )}
             </tbody>
           </Table>
         </div>
-        
-        {/* التصفح بين الصفحات */}
+
         {totalPages > 1 && (
           <div className="d-flex justify-content-center mt-4">
-            <Pagination className="custom-pagination">
+            <Pagination>
               <Pagination.Prev 
                 disabled={currentPage === 1} 
-                onClick={() => handlePageChange(currentPage - 1)}
-                style={{
-                  background: secondaryDark,
-                  border: `1px solid ${accentTeal}`,
-                  color: lightText,
-                  margin: '0 5px'
-                }}
+                onClick={() => setCurrentPage(currentPage - 1)}
               />
-              
-              {[...Array(totalPages)].map((_, index) => (
+              {Array.from({ length: totalPages }, (_, i) => (
                 <Pagination.Item
-                  key={index + 1}
-                  active={index + 1 === currentPage}
-                  onClick={() => handlePageChange(index + 1)}
-                  style={{
-                    background: index + 1 === currentPage ? accentGold : secondaryDark,
-                    border: `1px solid ${index + 1 === currentPage ? accentGold : accentBlue}`,
-                    color: index + 1 === currentPage ? primaryDark : lightText,
-                    margin: '0 5px',
-                    minWidth: '40px',
-                    textAlign: 'center'
-                  }}
+                  key={i + 1}
+                  active={i + 1 === currentPage}
+                  onClick={() => setCurrentPage(i + 1)}
                 >
-                  {index + 1}
+                  {i + 1}
                 </Pagination.Item>
               ))}
-              
               <Pagination.Next 
                 disabled={currentPage === totalPages} 
-                onClick={() => handlePageChange(currentPage + 1)}
-                style={{
-                  background: secondaryDark,
-                  border: `1px solid ${accentTeal}`,
-                  color: lightText,
-                  margin: '0 5px'
-                }}
+                onClick={() => setCurrentPage(currentPage + 1)}
               />
             </Pagination>
           </div>
         )}
-        
-        {/* إحصائيات سريعة */}
-        <div className="mt-5">
-          <h4 style={{ 
-            color: accentGold, 
-            borderBottom: `2px solid ${accentGold}`, 
-            paddingBottom: '15px',
-            position: 'relative'
-          }}>
-            <i className="bi bi-bar-chart-fill me-2"></i>
-            إحصائيات الحسابات
-            <div style={{
-              position: 'absolute',
-              bottom: '-2px',
-              left: '0',
-              width: '150px',
-              height: '2px',
-              background: accentTeal
-            }}></div>
-          </h4>
-          
-          <div className="row mt-4">
-            <div className="col-md-4 mb-4">
-              <div className="card" style={{ 
-                background: getCardColor(0),
-                border: `1px solid ${accentGold}`,
-                borderRadius: '15px',
-                boxShadow: `0 4px 15px rgba(251, 191, 36, 0.2)`,
-                overflow: 'hidden'
-              }}>
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="card-title" style={{ color: accentGold }}>المستثمرون</h5>
-                      <h2 className="mb-0" style={{ color: accentBlue }}>
-                        {accounts.filter(a => a.type === 'investor').length}
-                      </h2>
-                      <div className="mt-2" style={{ color: lightGray, fontSize: '0.9rem' }}>
-                        <i className="bi bi-check-circle-fill me-1" style={{ color: '#10b981' }}></i>
-                        نشطة: {accounts.filter(a => a.type === 'investor' && a.status === 'active').length}
-                      </div>
-                    </div>
-                    <div style={{
-                      width: '60px',
-                      height: '60px',
-                      background: 'rgba(96, 165, 250, 0.2)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <i className="bi bi-person-badge" style={{ fontSize: '1.8rem', color: accentBlue }}></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="col-md-4 mb-4">
-              <div className="card" style={{ 
-                background: getCardColor(1),
-                border: `1px solid ${accentTeal}`,
-                borderRadius: '15px',
-                boxShadow: `0 4px 15px rgba(45, 212, 191, 0.2)`,
-                overflow: 'hidden'
-              }}>
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="card-title" style={{ color: accentTeal }}>أصحاب المصانع</h5>
-                      <h2 className="mb-0" style={{ color: accentTeal }}>
-                        {accounts.filter(a => a.type === 'factory_owner').length}
-                      </h2>
-                      <div className="mt-2" style={{ color: lightGray, fontSize: '0.9rem' }}>
-                        <i className="bi bi-check-circle-fill me-1" style={{ color: '#10b981' }}></i>
-                        نشطة: {accounts.filter(a => a.type === 'factory_owner' && a.status === 'active').length}
-                      </div>
-                    </div>
-                    <div style={{
-                      width: '60px',
-                      height: '60px',
-                      background: 'rgba(45, 212, 191, 0.2)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <i className="bi bi-building" style={{ fontSize: '1.8rem', color: accentTeal }}></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="col-md-4 mb-4">
-              <div className="card" style={{ 
-                background: getCardColor(0),
-                border: `1px solid ${accentBlue}`,
-                borderRadius: '15px',
-                boxShadow: `0 4px 15px rgba(96, 165, 250, 0.2)`,
-                overflow: 'hidden'
-              }}>
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h5 className="card-title" style={{ color: accentBlue }}>إجمالي الحسابات</h5>
-                      <h2 className="mb-0" style={{ color: accentGold }}>
-                        {accounts.length}
-                      </h2>
-                      <div className="mt-2" style={{ color: lightGray, fontSize: '0.9rem' }}>
-                        <i className="bi bi-activity me-1" style={{ color: accentTeal }}></i>
-                        تم إنشاؤها في آخر 30 يوم: {accounts.filter(a => 
-                          new Date(a.registrationDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-                        ).length}
-                      </div>
-                    </div>
-                    <div style={{
-                      width: '60px',
-                      height: '60px',
-                      background: 'rgba(251, 191, 36, 0.2)',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <i className="bi bi-people-fill" style={{ fontSize: '1.8rem', color: accentGold }}></i>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="row">
-            <div className="col-md-4 mb-4">
-              <div className="card" style={{ 
-                background: getCardColor(1),
-                border: `1px solid #10b981`,
-                borderRadius: '15px',
-                boxShadow: `0 4px 15px rgba(16, 185, 129, 0.2)`,
-                overflow: 'hidden'
-              }}>
-                <div className="card-body text-center">
-                  <h5 style={{ color: '#10b981' }}>الحسابات النشطة</h5>
-                  <h2 className="mb-0" style={{ color: '#10b981' }}>
-                    {accounts.filter(a => a.status === 'active').length}
-                  </h2>
-                  <div className="mt-2" style={{ color: lightGray, fontSize: '0.9rem' }}>
-                    <i className="bi bi-arrow-up-right me-1"></i>
-                    {((accounts.filter(a => a.status === 'active').length / accounts.length) * 100).toFixed(1)}% من الحسابات
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="col-md-4 mb-4">
-              <div className="card" style={{ 
-                background: getCardColor(0),
-                border: `1px solid #f59e0b`,
-                borderRadius: '15px',
-                boxShadow: `0 4px 15px rgba(245, 158, 11, 0.2)`,
-                overflow: 'hidden'
-              }}>
-                <div className="card-body text-center">
-                  <h5 style={{ color: '#f59e0b' }}>الحسابات المعلقة</h5>
-                  <h2 className="mb-0" style={{ color: '#f59e0b' }}>
-                    {accounts.filter(a => a.status === 'pending').length}
-                  </h2>
-                  <div className="mt-2" style={{ color: lightGray, fontSize: '0.9rem' }}>
-                    <i className="bi bi-clock-history me-1"></i>
-                    بانتظار مراجعة الأدمن
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="col-md-4 mb-4">
-              <div className="card" style={{ 
-                background: getCardColor(1),
-                border: `1px solid #ef4444`,
-                borderRadius: '15px',
-                boxShadow: `0 4px 15px rgba(239, 68, 68, 0.2)`,
-                overflow: 'hidden'
-              }}>
-                <div className="card-body text-center">
-                  <h5 style={{ color: '#ef4444' }}>الحسابات الموقوفة</h5>
-                  <h2 className="mb-0" style={{ color: '#ef4444' }}>
-                    {accounts.filter(a => a.status === 'suspended').length}
-                  </h2>
-                  <div className="mt-2" style={{ color: lightGray, fontSize: '0.9rem' }}>
-                    <i className="bi bi-exclamation-triangle me-1"></i>
-                    تم تعليقها بسبب مخالفات
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </Container>
     </Container>
   );
 };
 
-export default AdminAccountsPage;
+export default AdminUsersPage;

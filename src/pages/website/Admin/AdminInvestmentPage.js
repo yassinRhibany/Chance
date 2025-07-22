@@ -28,6 +28,7 @@ const AdminInvestments = () => {
       try {
         const response = await axios.get('http://127.0.0.1:8000/api/Investments/index');
         
+        
         // Format the data
         const formattedInvestments = response.data.map(item => ({
           id: item.id,
@@ -202,9 +203,7 @@ const AdminInvestments = () => {
                 <th onClick={() => handleSort('factory_name')} style={{ cursor: 'pointer' }}>
                   المصنع {sortField === 'factory_name' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th onClick={() => handleSort('investor_name')} style={{ cursor: 'pointer' }}>
-                  المستثمر {sortField === 'investor_name' && (sortDirection === 'asc' ? '↑' : '↓')}
-                </th>
+               
                 <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }}>
                   المبلغ {sortField === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
@@ -222,9 +221,9 @@ const AdminInvestments = () => {
                 <tr key={investment.id}>
                   <td>{investment.id}</td>
                   <td>{investment.factory_name}</td>
-                  <td>{investment.investor_name}</td>
-                  <td>{investment.amount.toLocaleString()} ر.س</td>
-                  <td>{investment.collected_amount.toLocaleString()} ر.س</td>
+              
+                  <td>{investment.amount.toLocaleString()}$</td>
+                  <td>{investment.collected_amount.toLocaleString()} $</td>
                   <td>{renderStatusBadge(investment.status)}</td>
                   <td>
                     <Button
@@ -260,10 +259,10 @@ const AdminInvestments = () => {
               
               <div className="col-md-6 mb-3">
                 <h5>تفاصيل مالية</h5>
-                <p><strong>المبلغ المستثمر:</strong> {selectedInvestment.amount.toLocaleString()} ر.س</p>
-                <p><strong>المبلغ المجموع:</strong> {selectedInvestment.collected_amount.toLocaleString()} ر.س</p>
-                <p><strong>الهدف المالي:</strong> {selectedInvestment.target_amount.toLocaleString()} ر.س</p>
-                <p><strong>الحد الأدنى للاستثمار:</strong> {selectedInvestment.minimum_target.toLocaleString()} ر.س</p>
+                <p><strong>المبلغ المستثمر:</strong> {selectedInvestment.amount.toLocaleString()} $</p>
+                <p><strong>المبلغ المجموع:</strong> {selectedInvestment.collected_amount.toLocaleString()} $</p>
+                <p><strong>الهدف المالي:</strong> {selectedInvestment.target_amount.toLocaleString()} $</p>
+                <p><strong>الحد الأدنى للاستثمار:</strong> {selectedInvestment.minimum_target.toLocaleString()} $</p>
               </div>
               
               <div className="col-md-6 mb-3">
