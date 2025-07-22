@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Container, Card, Row, Col, Button, Badge, Form, Spinner, Alert, ProgressBar } from 'react-bootstrap';
-import { FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaUser, FaTag, FaUpload, FaTrash, FaArrowLeft, FaChartLine, FaCoins, FaMoneyBillWave } from 'react-icons/fa';
+import { FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaUser, FaTag, FaUpload, FaTrash, FaArrowLeft, FaChartLine, FaCoins, FaMoneyBillWave, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
 
 const FactoryDetails = () => {
-     const { state } = useLocation();
+    const { state } = useLocation();
     const { user } = useAuth();
     const { item } = state;
-
     const navigate = useNavigate();
+    
     const [images, setImages] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
@@ -19,62 +19,73 @@ const FactoryDetails = () => {
     const [opportunities, setOpportunities] = useState([]);
     const [loadingOpportunities, setLoadingOpportunities] = useState(true);
 
-    // جلب الصور عند تحميل الصفحة
+    // جلب الفرص الاستثمارية
     useEffect(() => {
-    const fetchOpportunities = async () => {
-        try {
-            setLoadingOpportunities(true);
-            const response = await axios.get(
-                `http://127.0.0.1:8000/api/InvestmentOpprtunities/getFactoryOpportunities/${item.id}`,
-                {
-                    headers: { 
-                        'Authorization': `Bearer ${user.token}`,
-                        'Accept': 'application/json'
+        const fetchOpportunities = async () => {
+            try {
+                setLoadingOpportunities(true);
+                const response = await axios.get(
+                    `http://127.0.0.1:8000/api/InvestmentOpprtunities/getFactoryOpportunities/${item.id}`,
+                    {
+                        headers: { 
+                            'Authorization': `Bearer ${user.token}`,
+                            'Accept': 'application/json'
+                        }
                     }
+                );
+                
+                if (response.data && response.data.opportunities) {
+                    setOpportunities(response.data.opportunities);
+                } else {
+                    setOpportunities([]);
                 }
-            );
-            
-            if (response.data && response.data.opportunities) {
-                setOpportunities(response.data.opportunities);
-            } else {
-                setError('لا توجد بيانات متاحة');
-                setOpportunities([]);
+            } catch (err) {
+                console.error('Error fetching opportunities:', err);
+                setError(`خطأ في جلب البيانات: ${err.message}`);
+            } finally {
+                setLoadingOpportunities(false);
             }
-        } catch (err) {
-            console.error('Error fetching opportunities:', err);
-            setError(`خطأ في جلب البيانات: ${err.message}`);
-            if (err.response) {
-                console.error('Response data:', err.response.data);
-                console.error('Response status:', err.response.status);
-            }
-        } finally {
-            setLoadingOpportunities(false);
-        }
-    };
+        };
 
-    if (item.id && user?.token) fetchOpportunities();
-}, [item.id, user?.token]);
+        if (item?.id && user?.token) fetchOpportunities();
+    }, [item.id, user?.token]);
 
-    // console.log(opportunities)
-    
+    // جلب الصور عند تحميل الصفحة
+    // useEffect(() => {
+    //     const fetchImages = async () => {
+    //         try {
+    //             const response = await axios.get(
+    //                 `http://127.0.0.1:8000/api/images/factoryImages/${item.id}`,
+    //                 {
+    //                     headers: { 'Authorization': `Bearer ${user.token}` }
+    //                 }
+    //             );
+    //             setImages(response.data.images || []);
+    //         } catch (err) {
+    //             console.error('Error fetching images:', err);
+    //         }
+    //     };
+
+    //     if (item?.id && user?.token) fetchImages();
+    // }, [item.id, user?.token]);
+
     const handleFileChange = (e) => {
-        setSelectedFiles([...e.target.files]);
+        const files = Array.from(e.target.files);
+        
+        // التحقق من أنواع الملفات
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        const validFiles = files.filter(file => allowedTypes.includes(file.type));
+        
+        if (validFiles.length !== files.length) {
+            setError('بعض الملفات ليست صوراً مدعومة (JPEG, PNG, GIF فقط)');
+        }
+        
+        setSelectedFiles(validFiles);
     };
 
- const handleUpload = async () => {
-    // التحقق من وجود البيانات المطلوبة أولاً
-    if (!selectedFiles?.length) {
+    const handleUpload = async () => {
+    if (!selectedFiles.length) {
         setError('الرجاء اختيار صورة واحدة على الأقل');
-        return;
-    }
-
-    if (!item?.id) {
-        setError('بيانات المصنع غير متوفرة');
-        return;
-    }
-
-    if (!user?.token) {
-        setError('يجب تسجيل الدخول أولاً');
         return;
     }
 
@@ -85,18 +96,11 @@ const FactoryDetails = () => {
     try {
         const formData = new FormData();
         
-        // إضافة الصور مع التحقق من وجودها
-        selectedFiles.forEach((file, index) => {
-            if (file instanceof File) {
-                formData.append(`images[${index}]`, file);
-            }
-        });
-
-        // إضافة بيانات إضافية مع التحقق
-        formData.append('factory_id', item.id);
-        if (user?.id) {
-            formData.append('user_id', user.id);
-        }
+        // إضافة الصورة (يجب أن يكون المفتاح 'image' كما يتوقع الخادم)
+        formData.append('image', selectedFiles[0]); // استخدمنا [0] لأول ملف فقط
+        
+        // إضافة الـ ID (إذا كان الخادم يتوقعه في FormData وليس في URL)
+        // formData.append('id', item.id);
 
         const response = await axios.post(
             `http://127.0.0.1:8000/api/images/uploadFactoryImage/${item.id}`,
@@ -105,51 +109,61 @@ const FactoryDetails = () => {
                 headers: {
                     'Authorization': `Bearer ${user.token}`,
                     'Accept': 'application/json',
-                    // لا تضف 'Content-Type': 'multipart/form-data' يدوياً
-                },
-                transformRequest: (data) => data, // مهم لطلبات FormData
+                    'Content-Type': 'multipart/form-data'
+                }
             }
         );
-
-        // التحقق من استجابة الخادم بشكل كامل
-        if (!response?.data) {
-            throw new Error('لا توجد بيانات في الاستجابة');
-        }
-
-        // معالجة البيانات المستلمة بحذر
-        const newImages = Array.isArray(response.data.images) ? 
-                         response.data.images : 
-                         (response.data.image ? [response.data.image] : []);
-
-        setImages(prev => [...prev, ...newImages]);
-        setSuccess(`تم رفع ${newImages.length} صورة بنجاح`);
-        setSelectedFiles([]);
+console.log(response)
+        if (response.status===200) {
+            // تحديث حالة الصور بناءً على استجابة الخادم
+            const newImage = response.data.image; // أو أي هيكل بيانات يعيده الخادم
+            // setImages([...images, newImage]);
+            setSuccess('تم رفع الصورة بنجاح');
+            setSelectedFiles([]);
+        } 
+            // throw new Error(response.data.message || 'فشل في رفع الصورة');
+        // }
     } catch (err) {
-        let errorMessage = 'فشل في رفع الصور';
+        let errorMessage = 'فشل في رفع الصورة';
         
         if (err.response) {
-            // معالجة أخطاء الخادم
-            errorMessage = err.response.data?.message || 
-                         (err.response.status === 422 ? 'بيانات غير صالحة' : `خطأ في الخادم: ${err.response.status}`);
-        } else if (err.request) {
-            errorMessage = 'لا يوجد اتصال بالخادم';
-        } else {
-            errorMessage = err.message || errorMessage;
+            // معالجة أخطاء التحقق من الصحة 422
+            if (err.response.status === 422) {
+                errorMessage = 'بيانات غير صالحة: ';
+                if (err.response.data.errors) {
+                    errorMessage += Object.values(err.response.data.errors).flat().join(', ');
+                } else {
+                    errorMessage += err.response.data.message || 'لا توجد تفاصيل إضافية';
+                }
+            } else {
+                errorMessage = err.response.data.message || errorMessage;
+            }
         }
-        
+        console.log(err)
         setError(errorMessage);
-        console.error('Upload Error:', err);
+        console.error('تفاصيل الخطأ:', {
+            status: err.response?.status,
+            data: err.response?.data,
+            config: err.config
+        });
     } finally {
         setUploading(false);
     }
 };
+
     const handleDeleteImage = async (imageId) => {
         try {
-            await axios.delete(`http://127.0.0.1:8000/api/images/deleteFactoryImage/${imageId}`);
-            setImages(images.filter(img => img.id !== imageId));
+            await axios.delete(
+                `http://127.0.0.1:8000/api/images/deleteFactoryImage/${imageId}`,
+                {
+                    headers: { 'Authorization': `Bearer ${user.token}` }
+                }
+            );
+            setImages(prev => prev.filter(img => img.id !== imageId));
             setSuccess('تم حذف الصورة بنجاح');
         } catch (err) {
             setError('فشل في حذف الصورة');
+            console.error('Delete Error:', err);
         }
     };
 
@@ -165,15 +179,11 @@ const FactoryDetails = () => {
         return statusMap[status] || 'secondary';
     };
 
-
-   
-    // دالة لحساب نسبة الإنجاز
     const calculateProgress = (collected, target) => {
         if (!collected || !target || target === 0) return 0;
         return (parseFloat(collected) / parseFloat(target)) * 100;
     };
 
-    // تنسيق المبالغ المالية
     const formatCurrency = (amount) => {
         if (!amount) return '0.00';
         return parseFloat(amount).toLocaleString('ar-EG', {
@@ -181,8 +191,6 @@ const FactoryDetails = () => {
             maximumFractionDigits: 2
         });
     };
-
-
 
     return (
         <div className="factory-details-page dark-theme" style={{
@@ -203,6 +211,7 @@ const FactoryDetails = () => {
 
                 {error && (
                     <Alert variant="danger" className="mb-4" onClose={() => setError('')} dismissible>
+                        <FaExclamationTriangle className="me-2" />
                         {error}
                     </Alert>
                 )}
@@ -214,14 +223,9 @@ const FactoryDetails = () => {
                 )}
 
                 <Card className="border-0 shadow-sm mb-4" style={{ backgroundColor: '#1e1e1e' }}>
-                    {/* معرض الصور */}
                     <div className="factory-gallery" style={{ height: '300px', overflow: 'hidden' }}>
                         {images.length > 0 ? (
-                            <div style={{
-                                display: 'flex',
-                                height: '100%',
-                                background: '#121212'
-                            }}>
+                            <div style={{ display: 'flex', height: '100%', background: '#121212' }}>
                                 {images.map((img, index) => (
                                     <div key={index} style={{
                                         position: 'relative',
@@ -232,20 +236,12 @@ const FactoryDetails = () => {
                                         <img
                                             src={img.url}
                                             alt={`صورة المصنع ${index + 1}`}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover'
-                                            }}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
                                         <Button
                                             variant="danger"
                                             size="sm"
-                                            style={{
-                                                position: 'absolute',
-                                                top: '10px',
-                                                left: '10px'
-                                            }}
+                                            style={{ position: 'absolute', top: '10px', left: '10px' }}
                                             onClick={() => handleDeleteImage(img.id)}
                                         >
                                             <FaTrash />
@@ -264,7 +260,6 @@ const FactoryDetails = () => {
                     </div>
 
                     <Card.Body>
-                        {/* رفع الصور */}
                         <div className="mb-4 p-3 border rounded" style={{ backgroundColor: '#121212', borderColor: '#333' }}>
                             <h5 className="text-light mb-3">إضافة صور جديدة للمصنع</h5>
                             <Form.Group controlId="formImages" className="mb-3">
@@ -272,7 +267,7 @@ const FactoryDetails = () => {
                                     type="file"
                                     multiple
                                     onChange={handleFileChange}
-                                    accept="image/*"
+                                    accept="image/jpeg, image/png, image/gif"
                                     className="bg-dark text-light border-secondary"
                                 />
                             </Form.Group>
@@ -298,7 +293,6 @@ const FactoryDetails = () => {
                             )}
                         </div>
 
-                        {/* تفاصيل المصنع */}
                         <div className="factory-info">
                             <div className="d-flex justify-content-between align-items-center mb-4">
                                 <h2 className="text-light mb-0">{item.name}</h2>
@@ -349,7 +343,6 @@ const FactoryDetails = () => {
                                 </Col>
                             </Row>
 
-                            {/* معلومات إضافية */}
                             <Row className="mt-4">
                                 <Col>
                                     <Card className="border-0" style={{ backgroundColor: '#121212' }}>
@@ -377,7 +370,6 @@ const FactoryDetails = () => {
                     </Card.Body>
                 </Card>
 
-                {/* قسم الفرص الاستثمارية الجديد */}
                 <Card className="border-0 shadow-sm mb-4" style={{ backgroundColor: '#1e1e1e' }}>
                     <Card.Body>
                         <div className="d-flex justify-content-between align-items-center mb-4">
@@ -476,7 +468,6 @@ const FactoryDetails = () => {
                         )}
                     </Card.Body>
                 </Card>
-
             </Container>
         </div>
     );

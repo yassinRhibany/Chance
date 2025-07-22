@@ -25,7 +25,7 @@ const InvestmentDetails = () => {
   const API_URL = 'http://127.0.0.1:8000/api';
   const { state } = useLocation();
   const { itemData } = state;
-  console.log(user.token)
+console.log(user.token)
   // الألوان المخصصة
   const primaryDark = '#1D1E22';
   const accent = '#FEDA6A';
@@ -33,8 +33,8 @@ const InvestmentDetails = () => {
   const darkGray = '#333';
 
   // حالات المكون
-  const [opportunity, setOpportunity] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // const [opportunity, setOpportunity] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
@@ -43,68 +43,68 @@ const InvestmentDetails = () => {
   const [message, setMessage] = useState('');
   const [messageColor, setMessageColor] = useState('');
   const [showMessage, setShowMessage] = useState(false);
+ 
 
-  useEffect(() => {
-    const fetchOpportunityDetails = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+// useEffect(() => {
+//     const fetchOpportunityDetails = async () => {
+//       try {
+//         setLoading(true);
+//         setError(null);
 
-        if (!user?.token) {
-          throw new Error('يجب تسجيل الدخول أولاً');
-        }
+//         if (!user?.token) {
+//           throw new Error('يجب تسجيل الدخول أولاً');
+//         }
 
-        const config = {
-          headers: {
-            'Authorization': `Bearer ${user.token}`,
-            'Content-Type': 'application/json'
-          }
-        };
+//         const config = {
+//           headers: {
+//             'Authorization': `Bearer ${user.token}`,
+//             'Content-Type': 'application/json'
+//           }
+//         };
 
-        const response = await axios.get(
-          `${API_URL}/InvestmentOpprtunities/getFactoryOpportunities/${id}`,
-          config
-        );
-        console.log(response)
-        if (!response.data) {
-          throw new Error('تنسيق البيانات غير صحيح');
-        }
+//         const response = await axios.get(
+//           `${API_URL}/InvestmentOpprtunities/opprtuntybyid/${id}`,
+//           config
+//         );
+        
+//         if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+//           throw new Error('تنسيق البيانات غير صحيح أو لا توجد بيانات متاحة');
+//         }
 
-        const apiData = response.data;
+    
+//           const apiData = response.data[0];
+          
+//           const formattedOpportunity = {
+//             id: apiData.id,
+//             user_id: apiData.user_id || 'غير معروف',
+//             factory_id: apiData.factory_id || 'غير معروف',
+//             description: apiData.descrption || 'لا يوجد وصف متاح',
+//             // image: `https://source.unsplash.com/random/800x600?factory=${apiData.id}`,
+//             target_amount: apiData.target_amount,
+//             minimum_target: apiData.minimum_target,
+//             collected_amount: apiData.collected_amount,
+//             start_date: apiData.strtup,
+//             payout_frequency: apiData.payout_frequency,
+//             profit_percentage: apiData.profit_percentage,
+//             progress: calculateProgress(apiData.collected_amount, apiData.target_amount)
+//           };
 
-        const formattedOpportunity = {
-          id: apiData.opportunities, id,
-          name: apiData.factory || 'غير معروف',
-          // category: apiData.category_name || 'غير محدد',
-          // address: apiData.factory_address || 'غير محدد',
-          description: apiData.opportunities.descrption || 'لا يوجد وصف متاح',
-          image: apiData.image_url || `https://source.unsplash.com/random/800x600?factory=${apiData.opportunity_id}`,
-          // feasibility_pdf: apiData.factory_feasibility_pdf ?
-          // `${API_URL}/storage/${apiData.factory_feasibility_pdf}` : null,
-          target_amount: apiData.opportunity_target_amount,
-          minimum_target: apiData.opportunity_minimum_target,
-          collected_amount: apiData.opportunity_collected_amount,
-          start_date: apiData.opportunity_strtup,
-          payout_frequency: apiData.opportunity_payout_frequency,
-          profit_percentage: apiData.opportunity_profit_percentage,
-          progress: calculateProgress(apiData.opportunity_collected_amount, apiData.opportunity_target_amount)
-        };
+//           setOpportunity(formattedOpportunity);
 
-        setOpportunity(formattedOpportunity);
-        setLoading(false);
+//         setLoading(false);
 
-      } catch (err) {
-        const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب البيانات';
-        setError(errorMsg);
-        setMessage('حدث خطأ أثناء جلب البيانات');
-        setMessageColor('#DC3545');
-        setShowMessage(true);
-        setLoading(false);
-      }
-    };
+//       } catch (err) {
+//         const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب البيانات';
+//         setError(errorMsg);
+//         setMessage('حدث خطأ أثناء جلب البيانات');
+//         setMessageColor('#DC3545');
+//         setShowMessage(true);
+//         setLoading(false);
+//       }
+//     };
 
-    fetchOpportunityDetails();
-  }, [id, user]);
+//     fetchOpportunityDetails();
+//   }, [id, user]);
 
   // دوال مساعدة
   const translateFrequency = (freq) => {
@@ -117,27 +117,27 @@ const InvestmentDetails = () => {
     return frequencies[freq] || freq;
   };
 
-  const formatCurrency = (amount) => {
+const formatCurrency = (amount) => {
     if (!amount) return '$0.00';
     const num = parseFloat(amount);
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+        style: 'currency',
+        currency: 'USD'
     }).format(num);
-  };
+};
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'غير محدد';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('ar-SA', options);
-  };
+  // const formatDate = (dateString) => {
+  //   if (!dateString) return 'غير محدد';
+  //   const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  //   return new Date(dateString).toLocaleDateString('ar-SA', options);
+  // };
 
-  const calculateProgress = (collected, target) => {
-    if (!collected || !target) return 0;
-    const collectedNum = parseFloat(collected);
-    const targetNum = parseFloat(target);
-    return Math.min(Math.round((collectedNum / targetNum) * 100), 100);
-  };
+  // const calculateProgress = (collected, target) => {
+  //   if (!collected || !target) return 0;
+  //   const collectedNum = parseFloat(collected);
+  //   const targetNum = parseFloat(target);
+  //   return Math.min(Math.round((collectedNum / targetNum) * 100), 100);
+  // };
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
@@ -152,61 +152,60 @@ const InvestmentDetails = () => {
   };
 
   const handleInvestSubmit = async () => {
-    try {
-      if (!investmentAmount || parseFloat(investmentAmount) < 200) {
-        setMessage('المبلغ يجب أن لا يقل عن 200 ريال');
-        setMessageColor('#DC3545');
-        setShowMessage(true);
-        return;
-      }
-
-      // إنشاء FormData وإضافة الحقول
-      const formData = new FormData();
-      formData.append('opprtunty_id', itemData.id); // التأكد من أن الاسم مطابق لما يتوقعه الخادم
-      formData.append('amount', investmentAmount); // القيمة كـ string أو number
-
-      // لا تحدد Content-Type يدويًا عند استخدام FormData (يضبطه axios تلقائيًا)
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          // 'Content-Type': 'multipart/form-data' // ⚠️ لا تضف هذا السطر! axios يضبطه تلقائيًا
-        }
-      };
-
-      console.log("FormData Contents:");
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value); // تأكد من أن البيانات مضاف بشكل صحيح
-      }
-
-      const response = await axios.post(
-        `http://127.0.0.1:8000/api/InvestmentOpprtunities/confirmPurchase`,
-        formData,
-        config
-      );
-
-      console.log("Response:", response.data);
-      setShowInvestModal(false);
-      setInvestmentAmount('');
-      setMessage('تمت عملية الاستثمار بنجاح');
-      setMessageColor('#28A745');
-      setShowMessage(true);
-       setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
-
-    } catch (err) {
-      console.error("Full Error:", err);
-      const errorDetails = err.response?.data?.message;
-      
-      if (errorDetails == "Insufficient wallet balance")
-        setMessage("..رصيدك غير كافي");
-      else
-        setMessage(errorDetails);
-
+  try {
+    if (!investmentAmount || parseFloat(investmentAmount) < 200) {
+      setMessage('المبلغ يجب أن لا يقل عن 200 ريال');
       setMessageColor('#DC3545');
       setShowMessage(true);
-      setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
-
+      return;
     }
-  };
+
+    // إنشاء FormData وإضافة الحقول
+    const formData = new FormData();
+    formData.append('opprtunty_id', itemData.id); // التأكد من أن الاسم مطابق لما يتوقعه الخادم
+    formData.append('amount', investmentAmount); // القيمة كـ string أو number
+
+    // لا تحدد Content-Type يدويًا عند استخدام FormData (يضبطه axios تلقائيًا)
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${user.token}`,
+        // 'Content-Type': 'multipart/form-data' // ⚠️ لا تضف هذا السطر! axios يضبطه تلقائيًا
+      }
+    };
+
+    console.log("FormData Contents:");
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value); // تأكد من أن البيانات مضاف بشكل صحيح
+    }
+
+    const response = await axios.post(
+      `http://127.0.0.1:8000/api/InvestmentOpprtunities/confirmPurchase`,
+      formData,
+      config
+    );
+
+    console.log("Response:", response.data);
+    setShowInvestModal(false);
+    setInvestmentAmount('');
+    setMessage('تمت عملية الاستثمار بنجاح');
+    setMessageColor('#28A745');
+    setShowMessage(true);
+    setTimeout(() => setShowMessage(false), 5000);
+
+  }  catch (err) {
+    console.error("Full Error:", err);
+    const errorDetails = err.response?.data?.message;
+    if (errorDetails=="Insufficient wallet balance")
+    setMessage("لا يوجد رصيد كافي");
+
+else
+    setMessage(errorDetails);
+    setMessageColor('#DC3545');
+    setShowMessage(true);
+    setTimeout(() => { setShowMessage(false) ;  navigate(0)} , 5000);
+   
+  }
+};
 
   if (loading) {
     return (
@@ -241,7 +240,7 @@ const InvestmentDetails = () => {
     );
   }
 
-  if (!opportunity) {
+  if (!itemData) {
     return (
       <Container fluid className="py-5" style={{
         backgroundColor: primaryDark,
@@ -273,21 +272,21 @@ const InvestmentDetails = () => {
           }}>
             <Card.Img
               variant="top"
-              src={opportunity.image}
+              src={itemData.image}
               style={{
                 height: '400px',
                 objectFit: 'cover',
                 borderTopLeftRadius: '15px',
                 borderTopRightRadius: '15px'
               }}
-              alt={`صورة مصنع ${opportunity.name}`}
+              alt={`صورة مصنع ${itemData.name}`}
             />
 
             <Card.Body className="text-end">
               <Card.Title style={{ color: accent, fontSize: '2rem' }}>
-                {opportunity.name}
+                {itemData.name}
                 <Badge bg="warning" text="dark" className="me-2">
-                  {opportunity.category}
+                  {itemData.category}
                 </Badge>
               </Card.Title>
 
@@ -374,7 +373,7 @@ const InvestmentDetails = () => {
                 </Card>
 
                 {comments.map((comment, index) => (
-
+                  
                   <Card key={index} className="mb-3" style={{
                     color: "white",
                     backgroundColor: primaryDark,
@@ -413,25 +412,25 @@ const InvestmentDetails = () => {
         dir="rtl"
         contentClassName="bg-dark text-light"
       >
-        {showMessage && (
-          <div style={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 9999,
-            width: '100%',
-            maxWidth: '600px',
-            padding: '0 15px'
-          }}>
-            <Message
-              coler={messageColor}
-              show={showMessage}
-              message={message}
-              onClose={() => setShowMessage(false)}
-            />
-          </div>
-        )}
+                  {showMessage && (
+            <div style={{
+              position: 'fixed',
+              top: '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 9999,
+              width: '100%',
+              maxWidth: '600px',
+              padding: '0 15px'
+            }}>
+              <Message 
+                coler={messageColor}
+                show={showMessage}
+                message={message}
+                onClose={() => setShowMessage(false)}
+              />
+            </div>
+          )}
         <Modal.Header closeButton closeVariant="white" className="border-secondary">
           <Modal.Title className="w-100 text-center" style={{ color: accent }}>
             استثمار في الفرصة
@@ -440,7 +439,7 @@ const InvestmentDetails = () => {
 
         <Modal.Body>
           <div className="text-center mb-4">
-            <h5>{opportunity.name}</h5>
+            <h5>{itemData.name}</h5>
             <p>الحد الأدنى للمساهمة: ${itemData.minimum_target}</p>
           </div>
 
