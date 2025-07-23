@@ -36,6 +36,7 @@ import MarketTrading from './pages/website/investor/MarketTrading';
 import MyFactoryes from './pages/website/FactoryOwner/MyFactoryes';
 import FactoryDetails from './pages/website/FactoryOwner/FactoryDetails';
 import InvestmentDetails from './pages/website/investor/card';
+import AdminFinancialTransactions from './pages/website/Admin/AdminFinancialTransactions';
 
 export default function App() {
 
@@ -57,20 +58,17 @@ export default function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<About />} />
-                   <Route path="/CompleteUserProfile" element={<CompleteUserProfile/>} />
-
                 
 
                 {/* مسارات المدير */}
                 <Route element={<AdminLayout />}>
                  <Route path='/Admin/AdminAccountsPage' element={<AdminAccountsPage/>}/>
-                 <Route path="/Admin/UserDetailsPage/:id" element={<UserDetailsPage />} />
+                 <Route path="UserDetailsPage" element={<UserDetailsPage />} />
                  <Route path="/Admin/AdminInvestmentPage" element={<AdminInvestmentPage />} />
                  <Route path="/Admin/AdminFactories" element={<AdminFactories />} />
                  <Route path="/Admin/AdminReturnes" element={<AdminReturnes/>} />
                  <Route path="/Admin/ReportsPage" element={<ReportsPage/>} />
-               
-                 
+                 <Route path="/Admin/AdminFinancialTransactions" element={<AdminFinancialTransactions/>} />
                  
                 </Route>
 
@@ -81,11 +79,11 @@ export default function App() {
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
                   <Route path="/investor/investment/:id" element={<InvestmentDetails />} />
-                  
                  
                   
                  
-                 
+                  <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
+
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />
                   <Route path="/investor/TrackReturnes" element={<TrackReturnes/>} />
                   <Route path="/investor/InvestmentPortfolio" element={<InvestmentPortfolio/>} />
@@ -103,7 +101,6 @@ export default function App() {
                   <Route path="/factory/wallet" element={<Wallet />} />
                   <Route path="/factory/MyFactoryes" element={<MyFactoryes />} />
                   <Route path="/factory/FactoryDetails" element={<FactoryDetails />} />
-               
                 </Route>
 
 

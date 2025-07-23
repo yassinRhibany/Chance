@@ -1,6 +1,6 @@
 // src/data/sidebarItems.js
 import { House, Lightning, GraphUp, Plus, ClockHistory, Wallet2 } from 'react-bootstrap-icons';
-import { FaBullhorn, FaChartLine, FaChartPie, FaClipboardCheck, FaCoins, FaHandHoldingUsd, FaIndustry, FaMoneyBillWave, FaMoneyBillWaveAlt, FaRegLightbulb } from 'react-icons/fa';
+import { FaBullhorn, FaChartLine, FaChartPie, FaClipboardCheck, FaCoins, FaCreditCard, FaHandHoldingUsd, FaIndustry, FaMoneyBillWave, FaMoneyBillWaveAlt, FaRegLightbulb } from 'react-icons/fa';
 import { FiBriefcase, FiUsers } from 'react-icons/fi';
 
 // العناصر المشتركة بين جميع المستخدمين
@@ -28,6 +28,11 @@ const adminItems = [
     path: "/Admin/AdminAccountsPage",
     name: "إدارة الحسابات",
     icon: <FiUsers  size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
+  },
+  {
+    path: "/Admin/AdminFinancialTransactions",
+    name: "العمليات المالية",
+    icon: <   FaCreditCard  size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
   },
    {
     path: "/Admin/AdminInvestmentPage",
