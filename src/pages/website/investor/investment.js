@@ -81,9 +81,9 @@ const Investment = () => {
   }, [user]);
 
   const formatCurrency = (amount) => {
-    if (!amount) return '0.00 ريال';
+    if (!amount) return '0.00 $';
     const num = parseFloat(amount);
-    return new Intl.NumberFormat('ar-SA').format(num) + ' ريال';
+    return new Intl.NumberFormat('ar-SA').format(num) + '$';
   };
 
   if (loading) {

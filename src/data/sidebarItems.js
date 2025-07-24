@@ -81,7 +81,7 @@ const investorItems = [
   },
   {
     path: "/investor/TrackReturnes",
-    name: "   اختبار العوائد المالية تجربة",
+    name: "    العوائد المالية ",
     icon: <FaMoneyBillWave size={30} color="#97B152" className="me-0" style={{ margin: "0px 20px 0px" }} />
   },
   {

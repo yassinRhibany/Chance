@@ -175,7 +175,7 @@ const UserTransactions = () => {
                         </Badge>
                       </td>
                       <td className={amount > 0 ? "text-success" : "text-danger"}>
-                        {amount > 0 ? "+" : ""}{amount.toLocaleString('ar-SA')} ر.س
+                        {amount > 0 ? "+" : ""}{amount.toLocaleString('ar-SA')}$
                       </td>
                       <td>{tx.opprtunty_id}</td>
                       <td>{formatDate(tx.time_operation)}</td>
@@ -234,7 +234,7 @@ const UserTransactions = () => {
                   <p>
                     <strong>المبلغ:</strong> 
                     <span className={selectedTransaction.amount > 0 ? "text-success" : "text-danger"}>
-                      {selectedTransaction.amount > 0 ? "+" : ""}{parseFloat(selectedTransaction.amount).toLocaleString('ar-SA')} ر.س
+                      {selectedTransaction.amount > 0 ? "+" : ""}{parseFloat(selectedTransaction.amount).toLocaleString('ar-SA')}$
                     </span>
                   </p>
                   <p><strong>رقم الفرصة:</strong> {selectedTransaction.opprtunty_id}</p>
