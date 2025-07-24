@@ -58,6 +58,8 @@ export default function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
+
                 
 
                 {/* مسارات المدير */}
@@ -79,7 +81,8 @@ export default function App() {
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
                   <Route path="/investor/investment/:id" element={<InvestmentDetails />} />
-                 
+                    <Route path="/about" element={<CompleteUserProfile />} />
+
                   
                  
                   <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />

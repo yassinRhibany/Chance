@@ -35,20 +35,6 @@ const AdminFinancialTransactions = () => {
   const textColor = '#E0E1E6';
   const mutedText = '#A0A2AA';
 
-  // بيانات تجريبية للعرض
-  const sampleData = [
-    {
-      amount: "2000.00",
-      created_at: "2025-07-21T09:27:38.000000Z",
-      id: 1,
-      opprtunty_id: 4,
-      time_operation: "2025-07-21",
-      type: "buy",
-      updated_at: "2025-07-21T09:27:38.000000Z",
-      user_id: 7
-    }
-  ];
-
   // جلب بيانات العمليات المالية
   const fetchTransactions = async () => {
     try {
@@ -61,19 +47,15 @@ const AdminFinancialTransactions = () => {
         return;
       }
 
-      // استخدام البيانات التجريبية للعرض
-      setTransactions(sampleData);
-      
-      // في حالة استخدام API الحقيقي:
-      /*
       const response = await axios.get('http://127.0.0.1:8000/api/Transaction/index', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
-      });
+      });console.log(response);
+      
+
       setTransactions(response.data.data || response.data);
-      */
     } catch (err) {
       console.error('Error fetching transactions:', err);
       setError(err.response?.data?.message || 'حدث خطأ في جلب بيانات العمليات المالية');
@@ -139,13 +121,6 @@ const AdminFinancialTransactions = () => {
     });
   };
 
-  // حساب الإجمالي
-  const calculateTotalAmount = () => {
-    return filteredTransactions.reduce((sum, transaction) => {
-      return sum + parseFloat(transaction.amount);
-    }, 0);
-  };
-
   if (loading && transactions.length === 0) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
@@ -195,9 +170,9 @@ const AdminFinancialTransactions = () => {
                   <div className="d-flex align-items-center">
                     <span className="me-3" style={{ color: textColor }}>نوع العملية:</span>
                     <div className="btn-group" role="group">
-                      {['الكل', 'buy', 'sell', 'deposit', 'withdraw'].map((type) => (
+                      {['الكل', 'buy', 'sell', 'deposit', 'withdraw'].map((type, index) => (
                         <Button
-                          key={type}
+                          key={index}
                           variant={filterType === type ? 'primary' : 'outline-secondary'}
                           onClick={() => setFilterType(type)}
                           style={{ 
@@ -224,10 +199,10 @@ const AdminFinancialTransactions = () => {
                         <th>نوع العملية</th>
                         <th>المبلغ</th>
                         <th>رقم الفرصة</th>
-                        <th>معرف المستخدم</th>
                         <th>تاريخ العملية</th>
-                        <th>تاريخ الإنشاء</th>
-                        <th>تاريخ التحديث</th>
+                        <th>التاريخ</th>
+                        <th>رقم  المعامل</th>
+
                       </tr>
                     </thead>
                     <tbody>
@@ -243,13 +218,13 @@ const AdminFinancialTransactions = () => {
                             color: transaction.type === 'buy' || transaction.type === 'deposit' ? '#28a745' : '#dc3545',
                             fontWeight: 'bold'
                           }}>
-                            {formatAmount(transaction.amount)} ر.س
+                            {formatAmount(transaction.amount)} $
                           </td>
                           <td>{transaction.opprtunty_id}</td>
-                          <td>{transaction.user_id}</td>
                           <td>{formatDate(transaction.time_operation)}</td>
                           <td>{formatDate(transaction.created_at)}</td>
-                          <td>{formatDate(transaction.updated_at)}</td>
+                           <td>{transaction.user_id}</td>
+                          
                         </tr>
                       ))}
                     </tbody>
@@ -273,7 +248,7 @@ const AdminFinancialTransactions = () => {
                 <div>
                   <span className="text-light me-3">إجمالي المبالغ: </span>
                   <span className="fw-bold text-white">
-                    {formatAmount(calculateTotalAmount())} ر.س
+                    {formatAmount(filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0))} ر.س
                   </span>
                 </div>
               </div>
