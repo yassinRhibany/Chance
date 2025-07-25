@@ -58,12 +58,12 @@ export default function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<About />} />
-<<<<<<< HEAD
-=======
+
+
                 <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
 
                 
->>>>>>> a8b06c4d8b6e51caeffeaba0ffa48210a26f9229
+
 
                 {/* مسارات المدير */}
                 <Route element={<AdminLayout />}>
@@ -83,13 +83,13 @@ export default function App() {
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
                   <Route path="/investor/investment/:id" element={<InvestmentDetails />} />
-<<<<<<< HEAD
-=======
+
+
                     <Route path="/about" element={<CompleteUserProfile />} />
 
                   
                  
->>>>>>> a8b06c4d8b6e51caeffeaba0ffa48210a26f9229
+
                   <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />
                   <Route path="/investor/TrackReturnes" element={<TrackReturnes />} />
