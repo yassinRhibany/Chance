@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Container, Card, Row, Col, Button, Badge, Form, Spinner, Alert, ProgressBar } from 'react-bootstrap';
+import { Container, Card, Row, Col, Button, Badge, Form, Spinner, Alert, ProgressBar, Modal } from 'react-bootstrap';
 import { FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaUser, FaTag, FaUpload, FaTrash, FaArrowLeft, FaChartLine, FaCoins, FaMoneyBillWave, FaExclamationTriangle, FaArrowRight } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
@@ -18,11 +18,19 @@ const FactoryDetails = () => {
     const [success, setSuccess] = useState('');
     const [opportunities, setOpportunities] = useState([]);
     const [loadingOpportunities, setLoadingOpportunities] = useState(true);
-    const [refreshKey, setRefreshKey] = useState(0); // مفتاح للتحديث
-    // تنسيق الصور
+    const [refreshKey, setRefreshKey] = useState(0);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [autoPlay, setAutoPlay] = useState(true);
     const [intervalId, setIntervalId] = useState(null);
+    
+    // حالة للواجهة المنبثقة وتوزيع العوائد
+    const [showDistributionModal, setShowDistributionModal] = useState(false);
+    const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+    const [distributionAmount, setDistributionAmount] = useState('');
+    const [distributing, setDistributing] = useState(false);
+    const [distributionError, setDistributionError] = useState('');
+    const [distributionSuccess, setDistributionSuccess] = useState('');
+
     // جلب الفرص الاستثمارية
     useEffect(() => {
         const fetchOpportunities = async () => {
@@ -52,9 +60,9 @@ const FactoryDetails = () => {
         };
 
         if (item?.id && user?.token) fetchOpportunities();
-    }, [item.id, user?.token, refreshKey]); // أضف refreshKey كمتابع
+    }, [item.id, user?.token, refreshKey]);
 
-    // جلب الصور عند تحميل الصفحة أو عند التحديث
+    // جلب الصور
     useEffect(() => {
         const fetchImages = async () => {
             try {
@@ -71,7 +79,7 @@ const FactoryDetails = () => {
         };
 
         if (item?.id && user?.token) fetchImages();
-    }, [item.id, user?.token, refreshKey]); // أضف refreshKey كمتابع
+    }, [item.id, user?.token, refreshKey]);
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
@@ -114,7 +122,7 @@ const FactoryDetails = () => {
             if (response.status === 200) {
                 setSuccess('تم رفع الصورة بنجاح');
                 setSelectedFiles([]);
-                setRefreshKey(prev => prev + 1); // تحديث الصفحة
+                setRefreshKey(prev => prev + 1);
             }
         } catch (err) {
             let errorMessage = 'فشل في رفع الصورة';
@@ -143,14 +151,81 @@ const FactoryDetails = () => {
                 }
             );
             setSuccess('تم حذف الصورة بنجاح');
-            setRefreshKey(prev => prev + 1); // تحديث الصفحة
+            setRefreshKey(prev => prev + 1);
         } catch (err) {
             setError('فشل في حذف الصورة');
             console.error('Delete Error:', err);
         }
     };
 
-    // الدوال المساعدة الأخرى تبقى كما هي
+    // وظائف توزيع العوائد
+    const handleShowDistributionModal = (opportunity) => {
+        setSelectedOpportunity(opportunity);
+        setDistributionAmount('');
+        setDistributionError('');
+        setDistributionSuccess('');
+        setShowDistributionModal(true);
+    };
+
+    const handleCloseDistributionModal = () => {
+        setShowDistributionModal(false);
+        setSelectedOpportunity(null);
+        setDistributionAmount('');
+        setDistributionError('');
+        setDistributionSuccess('');
+    };
+
+    const handleDistributeProfits = async () => {
+        if (!distributionAmount || isNaN(distributionAmount) || parseFloat(distributionAmount) <= 0) {
+            setDistributionError('الرجاء إدخال مبلغ صحيح أكبر من الصفر');
+            return;
+        }
+
+        setDistributing(true);
+        setDistributionError('');
+        setDistributionSuccess('');
+
+        try {
+            const response = await axios.post(
+                `http://127.0.0.1:8000/api/Returns/distributeReturn/${selectedOpportunity.id}`,
+                {
+                    amount: distributionAmount
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );console.log(response);
+
+            if (response.data.success) {
+                setDistributionSuccess('تم توزيع العوائد بنجاح');
+                setRefreshKey(prev => prev + 1);
+                setTimeout(() => {
+                    handleCloseDistributionModal();
+                }, 1500);
+            } else {
+                setDistributionError(response.data.message || 'فشل في توزيع العوائد');
+            }
+        } catch (err) {
+            console.error('Distribution error:', err);
+            if (err.response) {
+                if (err.response.status === 422) {
+                    setDistributionError('بيانات غير صالحة: ' + 
+                        (err.response.data.errors ? Object.values(err.response.data.errors).flat().join(', ') : err.response.data.message));
+                } else {
+                    setDistributionError(err.response.data.message || 'حدث خطأ أثناء توزيع العوائد');
+                }
+            } else {
+                setDistributionError('حدث خطأ في الاتصال بالخادم');
+            }
+        } finally {
+            setDistributing(false);
+        }
+    };
+
     const getStatusBadge = (status) => {
         const statusMap = {
             'approved': 'success',
@@ -182,35 +257,29 @@ const FactoryDetails = () => {
         });
     };
 
-    // وظائف تنسيق عرض الصور
-
-    // دالة للصورة التالية
     const nextImage = useCallback(() => {
         setCurrentImageIndex((prevIndex) =>
             prevIndex === images.length - 1 ? 0 : prevIndex + 1
         );
     }, [images.length]);
 
-    // دالة للصورة السابقة
     const prevImage = useCallback(() => {
         setCurrentImageIndex((prevIndex) =>
             prevIndex === 0 ? images.length - 1 : prevIndex - 1
         );
     }, [images.length]);
 
-    // بدء التشغيل التلقائي
     useEffect(() => {
         if (autoPlay && images.length > 1) {
             const id = setInterval(() => {
                 nextImage();
-            }, 3000); // تغيير الصورة كل 3 ثواني
+            }, 3000);
             setIntervalId(id);
 
             return () => clearInterval(id);
         }
     }, [autoPlay, images.length, nextImage]);
 
-    // إيقاف التشغيل التلقائي عند التفاعل
     const handleUserInteraction = () => {
         setAutoPlay(false);
         if (intervalId) {
@@ -218,11 +287,11 @@ const FactoryDetails = () => {
             setIntervalId(null);
         }
 
-        // استئناف التشغيل التلقائي بعد 10 ثواني من عدم التفاعل
         setTimeout(() => {
             setAutoPlay(true);
         }, 10000);
     };
+
     return (
         <div className="factory-details-page dark-theme" style={{
             backgroundColor: '#121212',
@@ -306,7 +375,6 @@ const FactoryDetails = () => {
                                     ))}
                                 </div>
 
-                                {/* أسهم التنقل */}
                                 {images.length > 1 && (
                                     <>
                                         <Button
@@ -350,7 +418,6 @@ const FactoryDetails = () => {
                                     </>
                                 )}
 
-                                {/* نقاط التوجيه */}
                                 {images.length > 1 && (
                                     <div style={{
                                         position: 'absolute',
@@ -386,7 +453,6 @@ const FactoryDetails = () => {
                             </div>
                         )}
                     </div>
-
 
                     <Card.Body>
                         <div className="mb-4 p-3 border rounded" style={{ backgroundColor: '#121212', borderColor: '#333' }}>
@@ -481,12 +547,9 @@ const FactoryDetails = () => {
                                                 <Col md={4} className="mb-3">
                                                     <div className="text-light">حالة النشاط:</div>
                                                     <div className="fw-bold text-light">
-
                                                         <Badge bg={getStatusBadge(item.is_active)} className="fs-6">
                                                             {IsActive(item.is_active)}
                                                         </Badge>
-
-
                                                     </div>
                                                 </Col>
                                                 <Col md={4} className="mb-3">
@@ -531,8 +594,8 @@ const FactoryDetails = () => {
                                                 </h5>
                                                 <div className="mb-3">
                                                     <ProgressBar
-                                                        now={50}
-                                                        label={`50%`}
+                                                        now={calculateProgress(opportunity.collected_amount, opportunity.target_amount)}
+                                                        label={`${calculateProgress(opportunity.collected_amount, opportunity.target_amount)}%`}
                                                         variant="success"
                                                         animated
                                                         style={{ height: '25px' }}
@@ -564,9 +627,9 @@ const FactoryDetails = () => {
                                                     variant="outline-primary"
                                                     size="sm"
                                                     className="me-2"
-                                                    onClick={() => navigate('/opportunity/details', { state: { opportunity } })}
+                                                    onClick={() => handleShowDistributionModal(opportunity)}
                                                 >
-                                                    التفاصيل
+                                                    توزيع العوائد
                                                 </Button>
                                             </Col>
                                         </Row>
@@ -605,6 +668,65 @@ const FactoryDetails = () => {
                     </Card.Body>
                 </Card>
             </Container>
+
+            {/* Modal لتوزيع العوائد */}
+            <Modal show={showDistributionModal} onHide={handleCloseDistributionModal} centered>
+                <Modal.Header closeButton style={{ backgroundColor: '#1e1e1e', color: '#fff' }}>
+                    <Modal.Title>توزيع العوائد</Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ backgroundColor: '#1e1e1e', color: '#fff' }}>
+                    {selectedOpportunity && (
+                        <>
+                            <div className="mb-3">
+                                <h5>فرصة استثمارية #{selectedOpportunity.id}</h5>
+                                <p>المبلغ المجموع: {formatCurrency(selectedOpportunity.collected_amount)} $</p>
+                                <p>عدد المستثمرين: {selectedOpportunity.investors_count || 0}</p>
+                            </div>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label>مبلغ العوائد المراد توزيعها ($)</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    value={distributionAmount}
+                                    onChange={(e) => setDistributionAmount(e.target.value)}
+                                    placeholder="أدخل المبلغ"
+                                    className="bg-dark text-light border-secondary"
+                                />
+                            </Form.Group>
+
+                            {distributionError && (
+                                <Alert variant="danger" className="mb-3">
+                                    {distributionError}
+                                </Alert>
+                            )}
+
+                            {distributionSuccess && (
+                                <Alert variant="success" className="mb-3">
+                                    {distributionSuccess}
+                                </Alert>
+                            )}
+                        </>
+                    )}
+                </Modal.Body>
+                <Modal.Footer style={{ backgroundColor: '#1e1e1e', borderTop: '1px solid #333' }}>
+                    <Button variant="secondary" onClick={handleCloseDistributionModal}>
+                        إلغاء
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        onClick={handleDistributeProfits}
+                        disabled={distributing}
+                    >
+                        {distributing ? (
+                            <>
+                                <Spinner as="span" animation="border" size="sm" /> جاري التوزيع...
+                            </>
+                        ) : (
+                            'توزيع العوائد'
+                        )}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };
