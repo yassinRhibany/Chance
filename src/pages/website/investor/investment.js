@@ -103,6 +103,7 @@ const Investment = () => {
   }, [user]);
 
   const formatCurrency = (amount) => {
+<<<<<<< HEAD
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -113,6 +114,11 @@ const Investment = () => {
   const calculateProgress = (collected, target) => {
     if (!collected || !target) return 0;
     return (collected / target) * 100;
+=======
+    if (!amount) return '0.00 $';
+    const num = parseFloat(amount);
+    return new Intl.NumberFormat('ar-SA').format(num) + '$';
+>>>>>>> a8b06c4d8b6e51caeffeaba0ffa48210a26f9229
   };
 
   if (loading) {

@@ -1,16 +1,20 @@
-import { colors } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import { 
   Container, Row, Col, Card, Table, ProgressBar, 
-  Button, Badge, Form, InputGroup, Spinner, Accordion
+  Button, Badge, Form, InputGroup, Spinner, Alert
 } from 'react-bootstrap';
 import { 
   FaMoneyBillWave, FaCalendarAlt, FaSearch, 
   FaFilter, FaFilePdf, FaSync, FaArrowUp,
   FaInfoCircle, FaCoins, FaChartLine, FaBuilding
 } from 'react-icons/fa';
+import axios from 'axios';
+import { useAuth } from '../../../Context/AuthContext';
 
 const InvestorDashboard = () => {
+  const { user } = useAuth();
+  const token = user?.token || null;
+  
   // بيانات الاستثمارات والعوائد
   const [investments, setInvestments] = useState([]);
   const [filteredInvestments, setFilteredInvestments] = useState([]);
@@ -18,6 +22,7 @@ const InvestorDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('الكل');
   const [timeFilter, setTimeFilter] = useState('الكل');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // الإحصائيات
   const [stats, setStats] = useState({
@@ -27,114 +32,93 @@ const InvestorDashboard = () => {
     activeInvestments: 0,
     lastReturn: 0
   });
-  
-  // محاكاة جلب البيانات من API
-  useEffect(() => {
-    const fetchData = () => {
-      setIsLoading(true);
-      
-      // بيانات وهمية للاستثمارات
-      const mockInvestments = [
-        {
-          id: 'INV-2023-001',
-          factory: 'مصنع الأثاث الحديث',
-          category: 'أثاث',
-          shares: 25,
-          investedAmount: 250000,
-          date: '2023-05-15',
-          status: 'نشط',
-          returns: [
-            { date: '2023-06-30', amount: 31250 },
-            { date: '2023-09-30', amount: 37500 },
-            { date: '2023-12-31', amount: 43750 }
-          ],
-          projectedReturns: 62500
-        },
-        {
-          id: 'INV-2023-002',
-          factory: 'مصنع البلاستيك المتطور',
-          category: 'بلاستيك',
-          shares: 15,
-          investedAmount: 150000,
-          date: '2023-06-20',
-          status: 'نشط',
-          returns: [
-            { date: '2023-07-31', amount: 15000 },
-            { date: '2023-10-31', amount: 18000 }
-          ],
-          projectedReturns: 30000
-        },
-        {
-          id: 'INV-2022-045',
-          factory: 'مصنع الورق الصحي',
-          category: 'ورق وطباعة',
-          shares: 30,
-          investedAmount: 300000,
-          date: '2022-11-22',
-          status: 'مكتمل',
-          returns: [
-            { date: '2023-01-31', amount: 37500 },
-            { date: '2023-04-30', amount: 45000 },
-            { date: '2023-07-31', amount: 52500 },
-            { date: '2023-10-31', amount: 60000 }
-          ],
-          projectedReturns: 0
-        },
-        {
-          id: 'INV-2023-015',
-          factory: 'مصنع الأغذية المعلبة',
-          category: 'أغذية ومشروبات',
-          shares: 20,
-          investedAmount: 200000,
-          date: '2023-03-05',
-          status: 'معلق',
-          returns: [],
-          projectedReturns: 50000
-        },
-        {
-          id: 'INV-2023-078',
-          factory: 'مصنع الأدوات الكهربائية',
-          category: 'إلكترونيات',
-          shares: 35,
-          investedAmount: 350000,
-          date: '2023-08-10',
-          status: 'نشط',
-          returns: [
-            { date: '2023-09-30', amount: 43750 }
-          ],
-          projectedReturns: 87500
-        }
-      ];
 
-      setInvestments(mockInvestments);
-      setFilteredInvestments(mockInvestments);
-      
-      // حساب الإحصائيات
-      const totalInvested = mockInvestments.reduce((sum, inv) => sum + inv.investedAmount, 0);
-      const totalReturns = mockInvestments.reduce((sum, inv) => 
-        sum + inv.returns.reduce((retSum, ret) => retSum + ret.amount, 0), 0);
-      const projectedReturns = mockInvestments.reduce((sum, inv) => sum + inv.projectedReturns, 0);
-      const activeInvestments = mockInvestments.filter(inv => inv.status === 'نشط').length;
-      
-      // الحصول على آخر عائد
-      const allReturns = mockInvestments.flatMap(inv => inv.returns);
-      const lastReturn = allReturns.length > 0 
-        ? allReturns.sort((a, b) => new Date(b.date) - new Date(a.date))[0].amount
-        : 0;
-      
-      setStats({
-        totalInvested,
-        totalReturns,
-        projectedReturns,
-        activeInvestments,
-        lastReturn
-      });
-      
+  // جلب بيانات العوائد من API
+  const fetchReturnsData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (!token) {
+        throw new Error('يجب تسجيل الدخول أولاً');
+      }
+
+      const response = await axios.get(
+        'http://127.0.0.1:8000/api/Returns/getUserReturns',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );console.log(response);
+
+
+      // تحويل البيانات الواردة من API إلى التنسيق المطلوب
+      const formattedInvestments = response.data.map(item => ({
+        id: item.id || 'غير محدد',
+        factory: item.factory_name || 'غير محدد',
+        category: item.category || 'أخرى',
+        shares: item.shares || 0,
+        investedAmount: parseFloat(item.invested_amount) || 0,
+        date: item.investment_date || 'غير محدد',
+        status: getStatusText(item.status),
+        returns: item.returns?.map(ret => ({
+          date: ret.return_date,
+          amount: parseFloat(ret.amount)
+        })) || [],
+        projectedReturns: parseFloat(item.projected_returns) || 0
+      }));
+
+      setInvestments(formattedInvestments);
+      setFilteredInvestments(formattedInvestments);
+      calculateStats(formattedInvestments);
+    } catch (err) {
+      console.error('Error fetching returns data:', err);
+      setError(err.response?.data?.message || err.message || 'حدث خطأ في جلب بيانات العوائد');
+    } finally {
       setIsLoading(false);
-    };
+    }
+  };
+
+  // تحويل حالة الاستثمار إلى نص
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'active': return 'نشط';
+      case 'completed': return 'مكتمل';
+      case 'pending': return 'معلق';
+      default: return status;
+    }
+  };
+
+  // حساب الإحصائيات
+  const calculateStats = (investmentsData) => {
+    const totalInvested = investmentsData.reduce((sum, inv) => sum + inv.investedAmount, 0);
+    const totalReturns = investmentsData.reduce((sum, inv) => 
+      sum + inv.returns.reduce((retSum, ret) => retSum + ret.amount, 0), 0);
+    const projectedReturns = investmentsData.reduce((sum, inv) => sum + inv.projectedReturns, 0);
+    const activeInvestments = investmentsData.filter(inv => inv.status === 'نشط').length;
     
-    fetchData();
-  }, []);
+    // الحصول على آخر عائد
+    const allReturns = investmentsData.flatMap(inv => inv.returns);
+    const lastReturn = allReturns.length > 0 
+      ? allReturns.sort((a, b) => new Date(b.date) - new Date(a.date))[0].amount
+      : 0;
+    
+    setStats({
+      totalInvested,
+      totalReturns,
+      projectedReturns,
+      activeInvestments,
+      lastReturn
+    });
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchReturnsData();
+    }
+  }, [token]);
 
   // تصفية الاستثمارات
   useEffect(() => {
@@ -176,6 +160,7 @@ const InvestorDashboard = () => {
 
   // تنسيق التاريخ
   const formatDate = (dateString) => {
+    if (!dateString || dateString === 'غير محدد') return 'غير محدد';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('ar-SA', options);
   };
@@ -214,11 +199,47 @@ const InvestorDashboard = () => {
     return (totalReturns / investment.investedAmount) * 100;
   };
 
-  // محاكاة تحديث البيانات
+  // تحديث البيانات
   const refreshData = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 800);
+    fetchReturnsData();
   };
+
+  if (isLoading && investments.length === 0) {
+    return (
+      <div style={{ 
+        backgroundColor: '#121212', 
+        color: '#e0e0e0',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <Spinner animation="border" variant="primary" />
+      </div>
+    );
+  }
+
+  if (error && investments.length === 0) {
+    return (
+      <div style={{ 
+        backgroundColor: '#121212', 
+        color: '#e0e0e0',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <Alert variant="danger" className="text-center">
+          {error}
+          <div className="mt-3">
+            <Button variant="primary" onClick={refreshData}>
+              إعادة المحاولة
+            </Button>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -250,9 +271,9 @@ const InvestorDashboard = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between">
                   <div>
-                    <h6 className="text-uppercase small  text-light " >إجمالي الاستثمارات</h6>
+                    <h6 className="text-uppercase small text-light">إجمالي الاستثمارات</h6>
                     <h3 className="mb-0 text-light">{formatCurrency(stats.totalInvested)}</h3>
-                    <p className="mb-0 text-muted  text-light">ليرة سوري </p>
+                    <p className="mb-0 text-muted">ليرة سوري</p>
                   </div>
                   <div className="bg-primary bg-opacity-10 p-3 rounded">
                     <FaBuilding size={24} className="text-primary" />
@@ -267,9 +288,9 @@ const InvestorDashboard = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between">
                   <div>
-                    <h6 className="text-uppercase small  text-light">العوائد المحققة</h6>
+                    <h6 className="text-uppercase small text-light">العوائد المحققة</h6>
                     <h3 className="mb-0 text-success">{formatCurrency(stats.totalReturns)}</h3>
-                    <p className="mb-0 text-light">ليرة سوري</p>
+                    <p className="mb-0 text-muted">ليرة سوري</p>
                   </div>
                   <div className="bg-success bg-opacity-10 p-3 rounded">
                     <FaCoins size={24} className="text-success" />
@@ -284,9 +305,9 @@ const InvestorDashboard = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between">
                   <div>
-                    <h6 className="text-uppercase small  text-light">العوائد المتوقعة</h6>
+                    <h6 className="text-uppercase small text-light">العوائد المتوقعة</h6>
                     <h3 className="mb-0 text-warning">{formatCurrency(stats.projectedReturns)}</h3>
-                    <p className="mb-0  text-light">ليرة  سوري</p>
+                    <p className="mb-0 text-muted">ليرة سوري</p>
                   </div>
                   <div className="bg-warning bg-opacity-10 p-3 rounded">
                     <FaChartLine size={24} className="text-warning" />
@@ -301,9 +322,9 @@ const InvestorDashboard = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between">
                   <div>
-                    <h6 className="text-uppercase small  text-light">آخر عائد</h6>
+                    <h6 className="text-uppercase small text-light">آخر عائد</h6>
                     <h3 className="mb-0 text-info">{formatCurrency(stats.lastReturn)}</h3>
-                    <p className="mb-0  text-light">ليرة  سوري</p>
+                    <p className="mb-0 text-muted">ليرة سوري</p>
                   </div>
                   <div className="bg-info bg-opacity-10 p-3 rounded">
                     <FaMoneyBillWave size={24} className="text-info" />
@@ -332,15 +353,15 @@ const InvestorDashboard = () => {
               <div className="d-flex flex-wrap gap-3 mt-4">
                 <div className="d-flex align-items-center">
                   <Badge bg="success" className="me-2">نشط</Badge>
-                  <span className=" text-light">استثمار قيد العمل ويحقق عوائد</span>
+                  <span className="text-light">استثمار قيد العمل ويحقق عوائد</span>
                 </div>
                 <div className="d-flex align-items-center">
                   <Badge bg="primary" className="me-2">مكتمل</Badge>
-                  <span className=" text-light">استثمار انتهت مدته وحقق جميع عوائده</span>
+                  <span className="text-light">استثمار انتهت مدته وحقق جميع عوائده</span>
                 </div>
                 <div className="d-flex align-items-center">
                   <Badge bg="warning" className="me-2">معلق</Badge>
-                  <span className=" text-light">استثمار قيد المراجعة ولم يبدأ العمل بعد</span>
+                  <span className="text-light">استثمار قيد المراجعة ولم يبدأ العمل بعد</span>
                 </div>
               </div>
             </div>
@@ -520,21 +541,40 @@ const InvestorDashboard = () => {
               <Col md={6}>
                 <div className="border rounded p-3 mb-3" style={{ backgroundColor: '#252525' }}>
                   <h6 className="text-warning">العوائد القادمة</h6>
-                  <ul className="text-light">
-                    <li>مصنع الأثاث الحديث: 31 ديسمبر 2023 - {formatCurrency(43750)}</li>
-                    <li>مصنع الأدوات الكهربائية: 31 ديسمبر 2023 - {formatCurrency(43750)}</li>
-                    <li>مصنع البلاستيك المتطور: 31 ديسمبر 2023 - {formatCurrency(12000)}</li>
-                  </ul>
+                  {investments.filter(inv => inv.status === 'نشط' && inv.returns.length > 0).length > 0 ? (
+                    <ul className="text-light">
+                      {investments
+                        .filter(inv => inv.status === 'نشط')
+                        .map(inv => (
+                          <li key={inv.id}>
+                            {inv.factory}: {formatDate(inv.returns[inv.returns.length - 1].date)} - {formatCurrency(inv.projectedReturns)}
+                          </li>
+                        ))
+                        .slice(0, 3)}
+                    </ul>
+                  ) : (
+                    <p className="text-muted">لا توجد عوائد قادمة</p>
+                  )}
                 </div>
               </Col>
               <Col md={6}>
                 <div className="border rounded p-3 mb-3" style={{ backgroundColor: '#252525' }}>
                   <h6 className="text-success">أفضل الاستثمارات أداءً</h6>
-                  <ul className="text-light">
-                    <li>مصنع الورق الصحي: عائد {formatCurrency(195000)} (65%)</li>
-                    <li>مصنع الأثاث الحديث: عائد {formatCurrency(112500)} (45%)</li>
-                    <li>مصنع الأدوات الكهربائية: عائد {formatCurrency(43750)} (12.5%)</li>
-                  </ul>
+                  {investments.filter(inv => getReturnPercentage(inv) > 0).length > 0 ? (
+                    <ul className="text-light">
+                      {investments
+                        .filter(inv => getReturnPercentage(inv) > 0)
+                        .sort((a, b) => getReturnPercentage(b) - getReturnPercentage(a))
+                        .map(inv => (
+                          <li key={inv.id}>
+                            {inv.factory}: عائد {formatCurrency(getTotalReturns(inv))} ({getReturnPercentage(inv).toFixed(1)}%)
+                          </li>
+                        ))
+                        .slice(0, 3)}
+                    </ul>
+                  ) : (
+                    <p className="text-muted">لا توجد استثمارات محققة لعوائد بعد</p>
+                  )}
                 </div>
               </Col>
             </Row>
