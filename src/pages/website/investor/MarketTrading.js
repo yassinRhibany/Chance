@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button, Table, Badge, ProgressBar, Modal, InputGroup } from 'react-bootstrap';
-import { FaCoins, FaChartLine, FaSearch, FaFilter, FaDollarSign, FaExchangeAlt, FaInfoCircle, FaTrash, FaShoppingCart } from 'react-icons/fa';
+import { Container, Row, Col, Card, Form, Button, Table, Badge, ProgressBar, Modal, InputGroup, Alert } from 'react-bootstrap';
+import { FaCoins, FaChartLine, FaSearch, FaFilter, FaDollarSign, FaExchangeAlt, FaInfoCircle, FaShoppingCart, FaCheckCircle } from 'react-icons/fa';
 
-// مكون سوق التداول المنفصل
 const MarketTrading = () => {
-  // حالة السوق
+  // بيانات الحصص الاستثمارية
   const [marketShares, setMarketShares] = useState([
     {
       id: 'MS-101',
@@ -38,28 +37,6 @@ const MarketTrading = () => {
       seller: 'علي حسن',
       returnRate: 28,
       timeLeft: '5 أيام'
-    },
-    {
-      id: 'MS-104',
-      factory: 'مصنع الأحذية الجلدية',
-      category: 'منتجات جلدية',
-      shares: 25,
-      currentValue: 250000,
-      askingPrice: 275000,
-      seller: 'خالد سعيد',
-      returnRate: 25,
-      timeLeft: '4 أيام'
-    },
-    {
-      id: 'MS-105',
-      factory: 'مصنع الدهانات الحديثة',
-      category: 'كيماويات',
-      shares: 35,
-      currentValue: 350000,
-      askingPrice: 385000,
-      seller: 'ليلى محمد',
-      returnRate: 20,
-      timeLeft: '6 أيام'
     }
   ]);
 
@@ -67,22 +44,46 @@ const MarketTrading = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('الكل');
   
+  // حالة نافذة الشراء
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [selectedShare, setSelectedShare] = useState(null);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+
   // تنسيق العملة
   const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0
-  }).format(amount);
-};
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
-  // شراء حصة من السوق
-  const buyShare = (share) => {
-    // في تطبيق حقيقي، سيتم إجراء معاملة
-    alert(`تم شراء حصة ${share.factory} بقيمة ${formatCurrency(share.askingPrice)}`);
+  // فتح نافذة الشراء
+  const handleBuyClick = (share) => {
+    setSelectedShare(share);
+    setShowBuyModal(true);
+    setPurchaseSuccess(false);
+  };
+
+  // تأكيد عملية الشراء
+  const confirmPurchase = () => {
+    if (!agreeTerms) {
+      alert('يجب الموافقة على الشروط والأحكام أولاً');
+      return;
+    }
     
-    // إزالة الحصة من السوق
-    setMarketShares(marketShares.filter(s => s.id !== share.id));
+    // محاكاة عملية الشراء
+    setTimeout(() => {
+      setPurchaseSuccess(true);
+      
+      // بعد 2 ثانية، إغلاق النافذة وتحديث البيانات
+      setTimeout(() => {
+        setMarketShares(marketShares.filter(s => s.id !== selectedShare.id));
+        setShowBuyModal(false);
+        setPurchaseSuccess(false);
+      }, 2000);
+    }, 1000);
   };
 
   // تصفية الحصص
@@ -145,9 +146,11 @@ const MarketTrading = () => {
                   <div>
                     <h6 className="text-uppercase small text-light">متوسط سعر الطلب</h6>
                     <h3 className="mb-0 text-warning">
-                      {formatCurrency(
-                        marketShares.reduce((sum, share) => sum + share.askingPrice, 0) / marketShares.length
-                      )}
+                      {marketShares.length > 0 ? 
+                        formatCurrency(
+                          marketShares.reduce((sum, share) => sum + share.askingPrice, 0) / marketShares.length
+                        ) : 
+                        '$0'}
                     </h3>
                   </div>
                   <div className="bg-warning bg-opacity-10 p-3 rounded">
@@ -165,7 +168,7 @@ const MarketTrading = () => {
                   <div>
                     <h6 className="text-uppercase small text-light">متوسط العائد</h6>
                     <h3 className="mb-0 text-success">
-                      {Math.round(marketShares.reduce((sum, share) => sum + share.returnRate, 0) / marketShares.length)}%
+         {Math.round(marketShares.reduce((sum, share) => sum + share.returnRate, 0) / marketShares.length)}%
                     </h3>
                   </div>
                   <div className="bg-success bg-opacity-10 p-3 rounded">
@@ -208,14 +211,9 @@ const MarketTrading = () => {
                       className="bg-dark text-light border-secondary"
                     >
                       <option value="الكل">كل الأصناف</option>
-                      <option value="أثاث">أثاث</option>
-                      <option value="بلاستيك">بلاستيك</option>
-                      <option value="إلكترونيات">إلكترونيات</option>
                       <option value="ورق وطباعة">ورق وطباعة</option>
                       <option value="أغذية ومشروبات">أغذية ومشروبات</option>
                       <option value="معدات وآلات">معدات وآلات</option>
-                      <option value="منتجات جلدية">منتجات جلدية</option>
-                      <option value="كيماويات">كيماويات</option>
                     </Form.Select>
                   </Col>
                 </Row>
@@ -230,7 +228,7 @@ const MarketTrading = () => {
                     <th>المصنع</th>
                     <th>الصنف</th>
                     <th>البائع</th>
-                    <th>عدد الحصص</th>
+                    <th>نسبة الحصة</th>
                     <th>القيمة السوقية</th>
                     <th>سعر الطلب</th>
                     <th>معدل العائد</th>
@@ -245,10 +243,8 @@ const MarketTrading = () => {
                       <td>
                         <Badge bg="secondary">{share.category}</Badge>
                       </td>
-                      <td>
-                        {share.seller}
-                      </td>
-                      <td>{share.shares}</td>
+                      <td>{share.seller}</td>
+                      <td>{share.shares}%</td>
                       <td>{formatCurrency(share.currentValue)}</td>
                       <td className="fw-bold text-warning">{formatCurrency(share.askingPrice)}</td>
                       <td>
@@ -268,7 +264,7 @@ const MarketTrading = () => {
                         <Button 
                           variant="outline-success" 
                           size="sm"
-                          onClick={() => buyShare(share)}
+                          onClick={() => handleBuyClick(share)}
                         >
                           <FaShoppingCart className="me-1" /> شراء
                         </Button>
@@ -286,7 +282,8 @@ const MarketTrading = () => {
             )}
           </Card.Body>
         </Card>
-        
+
+          
         {/* معلومات إضافية */}
         <Container className="mt-5">
           <Row>
@@ -448,16 +445,88 @@ const MarketTrading = () => {
             </Card>
           </Col>
         </Row>
-      </Container>
+
       
-      <style>{`
-        .bg-purple {
-          background-color: #6f42c1;
-        }
-        .text-purple {
-          color: #6f42c1;
-        }
-      `}</style>
+
+
+        {/* نافذة شراء الحصة */}
+        <Modal
+          show={showBuyModal}
+          onHide={() => setShowBuyModal(false)}
+          size="lg"
+          centered
+          backdrop="static"
+          className="text-right"
+        >
+          <Modal.Header closeButton style={{ backgroundColor: '#2a2a2a', color: '#e0e0e0' }}>
+            <Modal.Title>
+              {purchaseSuccess ? 'تمت العملية بنجاح' : 'تأكيد عملية الشراء'}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body style={{ backgroundColor: '#1e1e1e', color: '#e0e0e0' }}>
+            {purchaseSuccess ? (
+              <div className="text-center py-4">
+                <FaCheckCircle size={80} className="text-success mb-4" />
+                <h4 className="text-success">تم شراء الحصة بنجاح!</h4>
+                <p className="text-light mt-3">
+                  تمت عملية شراء حصة <strong>{selectedShare?.factory}</strong> بقيمة{' '}
+                  <strong className="text-warning">{selectedShare && formatCurrency(selectedShare.askingPrice)}</strong>
+                </p>
+              </div>
+            ) : (
+              selectedShare && (
+                <div>
+                  <h5 className="mb-4">تفاصيل الحصة</h5>
+                  <Row className="mb-3">
+                    <Col md={6}>
+                      <p><strong>المصنع:</strong> {selectedShare.factory}</p>
+                      <p><strong>الصنف:</strong> {selectedShare.category}</p>
+                      <p><strong>البائع:</strong> {selectedShare.seller}</p>
+                    </Col>
+                    <Col md={6}>
+                      <p><strong>نسبة الحصة:</strong> {selectedShare.shares}%</p>
+                      <p><strong>القيمة السوقية:</strong> {formatCurrency(selectedShare.currentValue)}</p>
+                      <p className="text-warning"><strong>سعر الطلب:</strong> {formatCurrency(selectedShare.askingPrice)}</p>
+                    </Col>
+                  </Row>
+
+                  <hr className="my-4" />
+
+
+
+                  <Form.Group className="mb-4">
+                    <Form.Check
+                      type="checkbox"
+                      id="agree-terms"
+                      label="أوافق على الشروط والأحكام وسياسة الخصوصية"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="text-light"
+                    />
+                  </Form.Group>
+
+                  <Alert variant="info" className="mt-4">
+                    <FaInfoCircle className="me-2" />
+                    سيتم خصم المبلغ من حسابك فور تأكيد العملية
+                  </Alert>
+                </div>
+              )
+            )}
+          </Modal.Body>
+          <Modal.Footer style={{ backgroundColor: '#2a2a2a' }}>
+            {!purchaseSuccess && (
+              <>
+                <Button variant="secondary" onClick={() => setShowBuyModal(false)}>
+                  إلغاء
+                </Button>
+                <Button variant="success" onClick={confirmPurchase}>
+                  تأكيد الشراء
+                </Button>
+              </>
+            )}
+          </Modal.Footer>
+        </Modal>
+      </Container>
     </div>
   );
 };

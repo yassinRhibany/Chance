@@ -43,7 +43,7 @@ export default function WalletCard () {
         </div>
         
         <h2 className="mb-4" style={{ color: '#FEDA6A' }}>
-          {balance.toLocaleString()} <small style={{ fontSize: '1rem', color: '#D4D4DC' }}>ر.س</small>
+          {balance.toLocaleString()} <small style={{ fontSize: '1rem', color: '#D4D4DC' }}>$</small>
         </h2>
         
         <div className="d-flex gap-3">
@@ -88,7 +88,7 @@ export default function WalletCard () {
       </div>
       
       {/* قائمة الحركات */}
-      <div className="transactions-list">
+      {/* <div className="transactions-list">
         <h6 className="mb-3 d-flex align-items-center" style={{ color: '#D4D4DC' }}>
           <ClockHistory className="me-2" />
           آخر الحركات
@@ -135,7 +135,7 @@ export default function WalletCard () {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };

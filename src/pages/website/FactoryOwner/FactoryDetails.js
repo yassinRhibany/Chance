@@ -531,8 +531,8 @@ const FactoryDetails = () => {
                                                 </h5>
                                                 <div className="mb-3">
                                                     <ProgressBar
-                                                        now={calculateProgress(opportunity.collected_amount, opportunity.target_amount)}
-                                                        label={`${calculateProgress(opportunity.collected_amount, opportunity.target_amount).toFixed(2)}%`}
+                                                        now={50}
+                                                        label={`50%`}
                                                         variant="success"
                                                         animated
                                                         style={{ height: '25px' }}

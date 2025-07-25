@@ -252,7 +252,7 @@ const formatCurrency = (amount) => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 className="text-uppercase small text-white">القيمة الإجمالية</h6>
+                    <h6 className="text-uppercase small text-muted">القيمة الإجمالية</h6>
                     <h3 className="mb-0 text-light">
                       {formatCurrency(portfolioStats.totalValue)}
                     </h3>
@@ -306,7 +306,7 @@ const formatCurrency = (amount) => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 className="text-uppercase small text-white">الحصص المعروضة</h6>
+                    <h6 className="text-uppercase small text-muted text-white">الحصص المعروضة</h6>
                     <h3 className="mb-0 text-info">
                       {portfolioStats.listedShares}
                     </h3>

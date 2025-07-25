@@ -59,13 +59,13 @@ const UserTransactions = () => {
     }
   }, [token]);
 
-  const filteredTransactions = filterType === "الكل" 
-    ? transactions 
+  const filteredTransactions = filterType === "الكل"
+    ? transactions
     : transactions.filter(tx => tx.type === filterType);
 
   // إرجاع أيقونة ولون حسب نوع المعاملة
   const getTransactionDetails = (type) => {
-    switch(type) {
+    switch (type) {
       case "deposit":
         return { icon: <FaArrowUp className="me-2" />, color: "success", text: transactionTypes.deposit };
       case "withdrawal":
@@ -82,17 +82,26 @@ const UserTransactions = () => {
   };
 
   // تنسيق التاريخ
+
   const formatDate = (dateString) => {
-    if (!dateString) return "غير محدد";
+    if (!dateString) return "Not specified";
     const date = new Date(dateString);
-    return date.toLocaleString("ar-SA", {
+    return date.toLocaleString("en-US", {
       year: "numeric",
-      month: "long",
+      month: "short",
       day: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
+      hour12: true
     });
   };
+
+
+  // Format numbers in English format
+  const formatNumber = (number) => {
+    return parseFloat(number).toLocaleString("en-US");
+  };
+
 
   // عرض تفاصيل المعاملة
   const showTransactionDetails = (transaction) => {
@@ -129,7 +138,7 @@ const UserTransactions = () => {
             <FaCoins className="me-2" />
             سجل المعاملات المالية
           </h5>
-          <Form.Select 
+          <Form.Select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
             style={{ width: "200px" }}
@@ -141,7 +150,7 @@ const UserTransactions = () => {
             ))}
           </Form.Select>
         </Card.Header>
-        
+
         <Card.Body>
           {loading && transactions.length > 0 && (
             <div className="text-center mb-3">
@@ -175,7 +184,7 @@ const UserTransactions = () => {
                         </Badge>
                       </td>
                       <td className={amount > 0 ? "text-success" : "text-danger"}>
-                        {amount > 0 ? "+" : ""}{amount.toLocaleString('ar-SA')}$
+                       {amount > 0 ? "+" : ""}{formatNumber(amount)}$
                       </td>
                       <td>{tx.opprtunty_id}</td>
                       <td>{formatDate(tx.time_operation)}</td>
@@ -226,15 +235,15 @@ const UserTransactions = () => {
                   <hr />
                   <p><strong>رقم المعاملة:</strong> {selectedTransaction.id}</p>
                   <p>
-                    <strong>النوع:</strong> 
+                    <strong>النوع:</strong>
                     <Badge bg={getTransactionDetails(selectedTransaction.type).color} className="me-2">
                       {getTransactionDetails(selectedTransaction.type).text}
                     </Badge>
                   </p>
                   <p>
-                    <strong>المبلغ:</strong> 
+                    <strong>المبلغ:</strong>
                     <span className={selectedTransaction.amount > 0 ? "text-success" : "text-danger"}>
-                      {selectedTransaction.amount > 0 ? "+" : ""}{parseFloat(selectedTransaction.amount).toLocaleString('ar-SA')}$
+                     {selectedTransaction.amount > 0 ? "+" : ""}{formatNumber(selectedTransaction.amount)}$
                     </span>
                   </p>
                   <p><strong>رقم الفرصة:</strong> {selectedTransaction.opprtunty_id}</p>

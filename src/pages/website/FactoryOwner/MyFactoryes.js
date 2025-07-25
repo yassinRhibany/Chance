@@ -479,8 +479,8 @@ console.log(response)
                         <FaFilePdf className="me-1 text-danger" /> دراسة الجدوى
                       </div>
                       <div>
-                        <a href="#" className="text-decoration-none" style={{ color: 'var(--accent)' }}>
-                          {factory.feasibility_pdf?.name || 'لا يوجد ملف'}
+                        <a href={`http://127.0.0.1:8000/storage/${factory.feasibility_pdf}`} className="text-decoration-none" style={{ color: 'var(--accent)' }}>
+                          {factory.feasibility_pdf && 'ملف دراسة الجدوى'}
                         </a>
                       </div>
                     </div>
