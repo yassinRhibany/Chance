@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
@@ -16,24 +16,24 @@ import {
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
 import Message from '../../../components/Message.js/Message';
+import { FaArrowLeft, FaArrowRight, FaTrash, FaMapMarkerAlt, FaCalendarAlt, FaUser, FaTag, FaCoins, FaMoneyBillWave, FaFilePdf } from 'react-icons/fa';
+import { GiFactory, GiProfit } from 'react-icons/gi';
+import { BsGraphUp, BsCurrencyDollar } from 'react-icons/bs';
 
 const InvestmentDetails = () => {
   const { id } = useParams();
-
   const navigate = useNavigate();
   const { user } = useAuth();
-  const API_URL = 'http://127.0.0.1:8000/api';
   const { state } = useLocation();
   const { itemData } = state;
-  console.log(user.token)
-  // الألوان المخصصة
-  const primaryDark = '#1D1E22';
-  const accent = '#FEDA6A';
-  const lightText = '#D4D4DC';
-  const darkGray = '#333';
 
-  // حالات المكون
-  // const [opportunity, setOpportunity] = useState(null);
+  // حالات السلايدر
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
+  const [intervalId, setIntervalId] = useState(null);
+  const [images, setImages] = useState([]);
+
+  // حالات المكون الأخرى
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [commentText, setCommentText] = useState('');
@@ -44,67 +44,68 @@ const InvestmentDetails = () => {
   const [messageColor, setMessageColor] = useState('');
   const [showMessage, setShowMessage] = useState(false);
 
+  // الألوان المخصصة
+  const primaryDark = '#1D1E22';
+  const accent = '#FEDA6A';
+  const lightText = '#D4D4DC';
+  const darkGray = '#333';
 
-  // useEffect(() => {
-  //     const fetchOpportunityDetails = async () => {
-  //       try {
-  //         setLoading(true);
-  //         setError(null);
+  // جلب الصور من API
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/images/getFactoryImages/${itemData.factory_id}`,
+          {
+            headers: { 'Authorization': `Bearer ${user.token}` }
+          }
+        );
+        setImages(response.data.images || []);
+      } catch (err) {
+        console.error('Error fetching images:', err);
+      }
+    };
 
-  //         if (!user?.token) {
-  //           throw new Error('يجب تسجيل الدخول أولاً');
-  //         }
+    if (itemData?.factory_id && user?.token) fetchImages();
+  }, [itemData.factory_id, user?.token]);
 
-  //         const config = {
-  //           headers: {
-  //             'Authorization': `Bearer ${user.token}`,
-  //             'Content-Type': 'application/json'
-  //           }
-  //         };
+  // دوال السلايدر
+  const nextImage = useCallback(() => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === images.length - 1 ? 0 : prevIndex + 1
+    );
+  }, [images.length]);
 
-  //         const response = await axios.get(
-  //           `${API_URL}/InvestmentOpprtunities/opprtuntybyid/${id}`,
-  //           config
-  //         );
+  const prevImage = useCallback(() => {
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1
+    );
+  }, [images.length]);
 
-  //         if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-  //           throw new Error('تنسيق البيانات غير صحيح أو لا توجد بيانات متاحة');
-  //         }
+  // بدء التشغيل التلقائي
+  useEffect(() => {
+    if (autoPlay && images.length > 1) {
+      const id = setInterval(() => {
+        nextImage();
+      }, 3000);
+      setIntervalId(id);
+      
+      return () => clearInterval(id);
+    }
+  }, [autoPlay, images.length, nextImage]);
 
-
-  //           const apiData = response.data[0];
-
-  //           const formattedOpportunity = {
-  //             id: apiData.id,
-  //             user_id: apiData.user_id || 'غير معروف',
-  //             factory_id: apiData.factory_id || 'غير معروف',
-  //             description: apiData.descrption || 'لا يوجد وصف متاح',
-  //             // image: `https://source.unsplash.com/random/800x600?factory=${apiData.id}`,
-  //             target_amount: apiData.target_amount,
-  //             minimum_target: apiData.minimum_target,
-  //             collected_amount: apiData.collected_amount,
-  //             start_date: apiData.strtup,
-  //             payout_frequency: apiData.payout_frequency,
-  //             profit_percentage: apiData.profit_percentage,
-  //             progress: calculateProgress(apiData.collected_amount, apiData.target_amount)
-  //           };
-
-  //           setOpportunity(formattedOpportunity);
-
-  //         setLoading(false);
-
-  //       } catch (err) {
-  //         const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب البيانات';
-  //         setError(errorMsg);
-  //         setMessage('حدث خطأ أثناء جلب البيانات');
-  //         setMessageColor('#DC3545');
-  //         setShowMessage(true);
-  //         setLoading(false);
-  //       }
-  //     };
-
-  //     fetchOpportunityDetails();
-  //   }, [id, user]);
+  // إيقاف التشغيل التلقائي عند التفاعل
+  const handleUserInteraction = () => {
+    setAutoPlay(false);
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+    }
+    
+    setTimeout(() => {
+      setAutoPlay(true);
+    }, 10000);
+  };
 
   // دوال مساعدة
   const translateFrequency = (freq) => {
@@ -126,29 +127,11 @@ const InvestmentDetails = () => {
     }).format(num);
   };
 
-  // const formatDate = (dateString) => {
-  //   if (!dateString) return 'غير محدد';
-  //   const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  //   return new Date(dateString).toLocaleDateString('ar-SA', options);
-  // };
-
   const calculateProgress = (collected, target) => {
     if (!collected || !target) return 0;
     const collectedNum = parseFloat(collected);
     const targetNum = parseFloat(target);
     return Math.min(Math.round((collectedNum / targetNum) * 100), 100);
-  };
-
-  const handleCommentSubmit = (e) => {
-    e.preventDefault();
-    if (commentText.trim()) {
-      const newComment = {
-        user: user?.name || 'مستثمر جديد',
-        text: commentText
-      };
-      setComments([...comments, newComment]);
-      setCommentText('');
-    }
   };
 
   const handleInvestSubmit = async () => {
@@ -160,23 +143,15 @@ const InvestmentDetails = () => {
         return;
       }
 
-      // إنشاء FormData وإضافة الحقول
       const formData = new FormData();
-      formData.append('opprtunty_id', itemData.id); // التأكد من أن الاسم مطابق لما يتوقعه الخادم
-      formData.append('amount', investmentAmount); // القيمة كـ string أو number
+      formData.append('opprtunty_id', itemData.id);
+      formData.append('amount', investmentAmount);
 
-      // لا تحدد Content-Type يدويًا عند استخدام FormData (يضبطه axios تلقائيًا)
       const config = {
         headers: {
           'Authorization': `Bearer ${user.token}`,
-          // 'Content-Type': 'multipart/form-data' // ⚠️ لا تضف هذا السطر! axios يضبطه تلقائيًا
         }
       };
-
-      console.log("FormData Contents:");
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value); // تأكد من أن البيانات مضاف بشكل صحيح
-      }
 
       const response = await axios.post(
         `http://127.0.0.1:8000/api/InvestmentOpprtunities/confirmPurchase`,
@@ -184,7 +159,6 @@ const InvestmentDetails = () => {
         config
       );
 
-      console.log("Response:", response.data);
       setShowInvestModal(false);
       setInvestmentAmount('');
       setMessage('تمت عملية الاستثمار بنجاح');
@@ -193,17 +167,13 @@ const InvestmentDetails = () => {
       setTimeout(() => setShowMessage(false), 5000);
 
     } catch (err) {
-      console.error("Full Error:", err);
       const errorDetails = err.response?.data?.message;
-      if (errorDetails == "Insufficient wallet balance")
-        setMessage("لا يوجد رصيد كافي");
-
-      else
-        setMessage(errorDetails);
+      setMessage(errorDetails === "Insufficient wallet balance" 
+        ? "لا يوجد رصيد كافي" 
+        : errorDetails);
       setMessageColor('#DC3545');
       setShowMessage(true);
       setTimeout(() => { setShowMessage(false); navigate(0) }, 5000);
-
     }
   };
 
@@ -255,32 +225,230 @@ const InvestmentDetails = () => {
     );
   }
 
-  return (
+
+    // تصميم جديد لمشغل الصور
+// تعريف جميع الأنماط في بداية المكون
+  const cardStyle = {
+    backgroundColor: '#2A2B32',
+    color: '#F5F5F5',
+    border: 'none',
+    borderRadius: '16px',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+    overflow: 'hidden',
+    transition: 'transform 0.3s ease',
+    ':hover': {
+      transform: 'translateY(-5px)'
+    }
+  };
+
+  const arrowButtonStyle = {
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 2,
+    borderRadius: '50%',
+    width: '48px',
+    height: '48px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(254, 218, 106, 0.2)',
+    border: 'none',
+    color: '#FEDA6A',
+    fontSize: '1.2rem',
+    transition: 'all 0.3s ease',
+    ':hover': {
+      backgroundColor: 'rgba(254, 218, 106, 0.4)',
+      transform: 'translateY(-50%) scale(1.1)'
+    }
+  };
+
+  const imageSliderStyle = {
+    height: '450px',
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: '#1E1F25',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  };
+
+  const imageContainerStyle = {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E1F25'
+  };
+
+  const imageStyle = {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    width: 'auto',
+    height: 'auto',
+    objectFit: 'contain',
+    transition: 'opacity 0.8s ease-in-out'
+  };
+
+  const infoItemStyle = {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px',
+    marginBottom: '16px',
+    backgroundColor: '#2E2F36',
+    padding: '14px',
+    borderRadius: '10px',
+    transition: 'all 0.3s ease',
+    ':hover': {
+      backgroundColor: '#36373E',
+      transform: 'translateX(5px)'
+    }
+  };
+
+  const infoIconStyle = {
+    backgroundColor: 'rgba(254, 218, 106, 0.1)',
+    color: '#FEDA6A',
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1rem',
+    flexShrink: 0
+  };
+
+  const infoTitleStyle = {
+    color: '#FEDA6A',
+    fontSize: '1rem',
+    marginBottom: '4px',
+    fontWeight: '500'
+  };
+
+  const infoTextStyle = {
+    color: '#D4D4DC',
+    fontSize: '0.95rem',
+    marginBottom: '0',
+    lineHeight: '1.6'
+  };
+   return (
     <>
-      <Container fluid className="py-5" style={{
-        backgroundColor: primaryDark,
+      <Container fluid className="py-5 px-4" style={{
+        backgroundColor: '#1A1B20',
         minHeight: '100vh'
       }}>
-        <Container>
+        <Container className="px-0">
+          <Card style={cardStyle}>
+            {/* جزء عرض الصور المحسن */}
+            <div style={imageSliderStyle}
+              onMouseEnter={() => setAutoPlay(false)}
+              onMouseLeave={() => setAutoPlay(true)}>
+              
+              {images.length > 0 ? (
+                <>
+                  <div style={imageContainerStyle}>
+                    {images.map((img, index) => (
+                      <div 
+                        key={img.id}
+                        style={{
+                          position: 'absolute',
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          opacity: index === currentImageIndex ? 1 : 0,
+                          zIndex: index === currentImageIndex ? 1 : 0,
+                          transition: 'opacity 0.8s ease-in-out'
+                        }}
+                      >
+                        <img
+                          src={`http://127.0.0.1:8000/storage/${img.image_path}`}
+                          alt={`صورة المصنع ${index + 1}`}
+                          style={imageStyle}
+                        />
+                      </div>
+                    ))}
+                  </div>
 
+                  {/* أسهم التنقل */}
+                  {images.length > 1 && (
+                    <>
+                      <Button
+                        variant="outline-light"
+                        style={{ ...arrowButtonStyle, left: '20px' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUserInteraction();
+                          prevImage();
+                        }}
+                      >
+                        <FaArrowLeft />
+                      </Button>
+                      <Button
+                        variant="outline-light"
+                        style={{ ...arrowButtonStyle, right: '20px' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUserInteraction();
+                          nextImage();
+                        }}
+                      >
+                        <FaArrowRight />
+                      </Button>
+                    </>
+                  )}
 
-          <Card style={{
-            backgroundColor: darkGray,
-            color: lightText,
-            border: `1px solid ${accent}`,
-            borderRadius: '15px'
-          }}>
-            <Card.Img
-              variant="top"
-              src={itemData.image}
-              style={{
-                height: '400px',
-                objectFit: 'cover',
-                borderTopLeftRadius: '15px',
-                borderTopRightRadius: '15px'
-              }}
-              alt={`صورة مصنع ${itemData.name}`}
-            />
+                  {/* نقاط التوجيه */}
+                  {images.length > 1 && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '20px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      zIndex: 2,
+                      display: 'flex',
+                      gap: '10px'
+                    }}>
+                      {images.map((_, index) => (
+                        <div 
+                          key={index}
+                          style={{
+                            width: '12px',
+                            height: '12px',
+                            borderRadius: '50%',
+                            backgroundColor: index === currentImageIndex ? '#FEDA6A' : 'rgba(255,255,255,0.3)',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            ':hover': {
+                              transform: 'scale(1.2)'
+                            }
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUserInteraction();
+                            setCurrentImageIndex(index);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#1E1F25'
+                }}>
+                  <GiFactory size={120} color="#FEDA6A" opacity={0.3} />
+                </div>
+              )}
+            </div>
 
             <Card.Body className="text-end">
               <Card.Title style={{ color: accent, fontSize: '2rem' }}>
@@ -310,7 +478,7 @@ const InvestmentDetails = () => {
                     <p>
                       📄 <strong>دراسة الجدوى:</strong>{' '}
                       <a
-                        href={itemData.factory_feasibility_pdf}
+                        href={`http://127.0.0.1:8000/storage/${itemData.factory_feasibility_pdf}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: accent }}
@@ -332,7 +500,6 @@ const InvestmentDetails = () => {
                   variant="success"
                 />
               </div>
- 
 
               <Button
                 onClick={() => setShowInvestModal(true)}

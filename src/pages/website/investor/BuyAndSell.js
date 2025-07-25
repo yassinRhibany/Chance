@@ -1,150 +1,230 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Table, Badge, ProgressBar, Button, Form, Modal, InputGroup ,Spinner} from 'react-bootstrap';
-import { FaCoins, FaChartLine, FaDollarSign, FaInfoCircle, FaTrash, FaEdit, FaPlus, FaSearch, FaFilter, FaFilePdf, FaSync , } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import {
+  Container, Row, Col, Card, Table, Badge, ProgressBar,
+  Button, Form, Modal, InputGroup, Spinner, Alert
+} from 'react-bootstrap';
+import {
+  FaCoins, FaChartLine, FaDollarSign, FaInfoCircle,
+  FaTrash, FaEdit, FaPlus, FaSearch, FaFilter,
+  FaFilePdf, FaSync
+} from 'react-icons/fa';
+import axios from 'axios';
+import { useAuth } from '../../../Context/AuthContext';
 
 const InvestmentPortfolio = () => {
-  // بيانات محفظة المستثمر
-  const [portfolio, setPortfolio] = useState([
-    {
-      id: 'SH-001',
-      name: 'مصنع الأثاث الحديث',
-      category: 'أثاث',
-      shares: 25,
-      purchasePrice: 250000,
-      currentValue: 312500,
-      returnRate: 25,
-      status: 'نشط',
-      listedForSale: false,
-      askingPrice: 0
-    },
-    {
-      id: 'SH-002',
-      name: 'مصنع البلاستيك المتطور',
-      category: 'بلاستيك',
-      shares: 15,
-      purchasePrice: 150000,
-      currentValue: 180000,
-      returnRate: 20,
-      status: 'نشط',
-      listedForSale: true,
-      askingPrice: 195000
-    },
-    {
-      id: 'SH-003',
-      name: 'مصنع الأدوات الكهربائية',
-      category: 'إلكترونيات',
-      shares: 35,
-      purchasePrice: 350000,
-      currentValue: 420000,
-      returnRate: 20,
-      status: 'نشط',
-      listedForSale: false,
-      askingPrice: 0
-    },
-    {
-      id: 'SH-004',
-      name: 'مصنع الورق الصحي',
-      category: 'ورق وطباعة',
-      shares: 30,
-      purchasePrice: 300000,
-      currentValue: 375000,
-      returnRate: 25,
-      status: 'مكتمل',
-      listedForSale: false,
-      askingPrice: 0
-    }
-  ]);
-
-  // حالة النموذج
+  const { user } = useAuth();
+  console.log(user.token)
+  const [portfolio, setPortfolio] = useState([]);
+  const [filteredPortfolio, setFilteredPortfolio] = useState([]);
   const [showSellModal, setShowSellModal] = useState(false);
   const [selectedShare, setSelectedShare] = useState(null);
   const [askPrice, setAskPrice] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('الكل');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [apiMessage, setApiMessage] = useState({ text: '', variant: '' });
+  const [showApiMessage, setShowApiMessage] = useState(false);
 
-  // تنسيق العملة
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('ar-SA', {
-      style: 'currency',
-      currency: 'SAR',
-      minimumFractionDigits: 0
-    }).format(amount);
+  useEffect(() => {
+    const fetchPortfolioData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        if (!user?.token) {
+          throw new Error('يجب تسجيل الدخول أولاً');
+        }
+
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${user.token}`,
+            'Content-Type': 'application/json'
+          }
+        };
+
+        const response = await axios.get(
+          'http://127.0.0.1:8000/api/Investments/filterByUser',
+          config
+        );
+
+        if (!response.data || !Array.isArray(response.data)) {
+          throw new Error('تنسيق البيانات غير صحيح');
+        }
+
+        const formattedPortfolio = response.data.map((item, index) => {
+          const investedAmount = parseFloat(item.amount);
+          return {
+            id: item.id,
+            name: item.opportunity.factory_name,
+            factory_name: item.opportunity.factory_name,
+            shares: item.percentage,
+            amount: investedAmount,
+            profit_percentage: parseFloat(item.opportunity.profit_percentage),
+            status: 'نشط',
+            listedForSale: false,
+            askingPrice: 0,
+            payout_frequency: item.opportunity.payout_frequency,
+            target_amount: item.opportunity.target_amount,
+            collected_amount: item.opportunity.collected_amount
+          };
+        });
+
+        setPortfolio(formattedPortfolio);
+        setFilteredPortfolio(formattedPortfolio);
+        setIsLoading(false);
+
+      } catch (err) {
+        console.error('Error fetching portfolio data:', err);
+        setError(err.message || 'حدث خطأ أثناء جلب البيانات');
+        setIsLoading(false);
+      }
+    };
+
+    fetchPortfolioData();
+  }, [user]);
+
+  useEffect(() => {
+    let result = portfolio.filter(share => {
+      return (
+        (share.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          share.factory_name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (statusFilter === 'الكل' || share.status === statusFilter)
+      );
+    });
+    setFilteredPortfolio(result);
+  }, [searchTerm, statusFilter, portfolio]);
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0
+  }).format(amount);
+};
+
+  const calculateProgress = (collected, target) => {
+    if (!collected || !target) return 0;
+    const collectedNum = parseFloat(collected);
+    const targetNum = parseFloat(target);
+    return Math.min(Math.round((collectedNum / targetNum) * 100), 100);
   };
 
-  // فتح نموذج البيع
   const openSellModal = (share) => {
     setSelectedShare(share);
-    setAskPrice(share.currentValue);
+    setAskPrice(share.amount);
     setShowSellModal(true);
   };
 
-  // إدراج الحصة للبيع
-  const listShareForSale = () => {
-    const updatedPortfolio = portfolio.map(share => {
-      if (share.id === selectedShare.id) {
-        return {
-          ...share,
-          listedForSale: true,
-          askingPrice: askPrice
-        };
+  const listShareForSale = async () => {
+    try {
+      if (!user?.token) {
+        throw new Error('يجب تسجيل الدخول أولاً');
       }
-      return share;
-    });
-    
-    setPortfolio(updatedPortfolio);
-    setShowSellModal(false);
+
+      const formData = new FormData();
+      formData.append('investment_id', selectedShare.id);
+      formData.append('offred_amount', selectedShare.amount);
+      formData.append('price', askPrice);
+
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${user.token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/offer/storeOffer',
+        formData,
+        config
+      );
+      console.log(response)
+      // تحديث الحالة المحلية بعد النجاح
+      const updatedPortfolio = portfolio.map(share => {
+        if (share.id === selectedShare.id) {
+          return { ...share, listedForSale: true, askingPrice: askPrice };
+        }
+        return share;
+      });
+
+      setPortfolio(updatedPortfolio);
+      setShowSellModal(false);
+      
+      setApiMessage({ text: 'تم عرض الحصة للبيع بنجاح', variant: 'success' });
+      setShowApiMessage(true);
+      setTimeout(() => setShowApiMessage(false), 5000);
+
+    } catch (err) {
+      console.error('Error listing share for sale:', err);
+      setApiMessage({ 
+        text: err.response?.data?.message || 'حدث خطأ أثناء محاولة عرض الحصة للبيع', 
+        variant: 'danger' 
+      });
+      setShowApiMessage(true);
+    }
   };
 
-  // إزالة إدراج الحصة من السوق
   const removeListing = (share) => {
     const updatedPortfolio = portfolio.map(s => {
       if (s.id === share.id) {
-        return {
-          ...s,
-          listedForSale: false,
-          askingPrice: 0
-        };
+        return { ...s, listedForSale: false, askingPrice: 0 };
       }
       return s;
     });
-    
     setPortfolio(updatedPortfolio);
   };
 
-  // محاكاة تحديث البيانات
   const refreshData = () => {
     setIsLoading(true);
     setTimeout(() => setIsLoading(false), 800);
   };
 
-  // تصفية الحصص
-  const filteredPortfolio = portfolio.filter(share => {
-    return (
-      (share.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      share.category.toLowerCase().includes(searchTerm.toLowerCase())
-    ) && (
-      statusFilter === 'الكل' || share.status === statusFilter
-    ));
-  });
-
-  // إحصائيات المحفظة
   const portfolioStats = {
-    totalValue: portfolio.reduce((sum, share) => sum + share.currentValue, 0),
-    totalInvested: portfolio.reduce((sum, share) => sum + share.purchasePrice, 0),
-    totalReturns: portfolio.reduce((sum, share) => sum + (share.currentValue - share.purchasePrice), 0),
+    totalValue: portfolio.reduce((sum, share) => sum + share.amount, 0),
+    totalInvested: portfolio.reduce((sum, share) => sum + share.amount, 0),
+    totalReturns: portfolio.reduce((sum, share) => sum + (share.amount * (share.profit_percentage / 100)), 0),
     listedShares: portfolio.filter(share => share.listedForSale).length,
-    avgReturnRate: Math.round(portfolio.reduce((sum, share) => sum + share.returnRate, 0) / portfolio.length)
+    avgprofit_percentage: portfolio.length > 0
+      ? Math.round(portfolio.reduce((sum, share) => sum + share.profit_percentage, 0) / portfolio.length)
+      : 0
   };
 
+  if (error) {
+    return (
+      <div style={{ backgroundColor: '#121212', minHeight: '100vh', padding: '2rem' }}>
+        <Container className="text-center py-5">
+          <div className="bg-danger p-3 rounded mb-3 d-inline-block">
+            <FaInfoCircle size={32} className="text-white" />
+          </div>
+          <h5 className="text-light">{error}</h5>
+          <Button variant="primary" className="mt-3" onClick={() => window.location.reload()}>
+            حاول مرة أخرى
+          </Button>
+        </Container>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ 
-      backgroundColor: '#121212', 
+    <div style={{
+      backgroundColor: '#121212',
       color: '#e0e0e0',
       minHeight: '100vh',
       paddingBottom: '2rem'
     }}>
       <Container fluid className="py-4">
+        {showApiMessage && (
+          <Alert 
+            variant={apiMessage.variant} 
+            onClose={() => setShowApiMessage(false)} 
+            dismissible
+            className="mt-3"
+          >
+            {apiMessage.text}
+          </Alert>
+        )}
+
         {/* العنوان الرئيسي */}
         <Row className="mb-4 align-items-center">
           <Col>
@@ -164,7 +244,7 @@ const InvestmentPortfolio = () => {
             </Button>
           </Col>
         </Row>
-        
+
         {/* بطاقات الإحصائيات */}
         <Row className="mb-4 g-3">
           <Col md={3}>
@@ -172,7 +252,7 @@ const InvestmentPortfolio = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 className="text-uppercase small text-muted">القيمة الإجمالية</h6>
+                    <h6 className="text-uppercase small text-white">القيمة الإجمالية</h6>
                     <h3 className="mb-0 text-light">
                       {formatCurrency(portfolioStats.totalValue)}
                     </h3>
@@ -190,7 +270,7 @@ const InvestmentPortfolio = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 className="text-uppercase small text-muted">إجمالي العوائد</h6>
+                    <h6  className="text-uppercase small text-white ">إجمالي العوائد</h6>
                     <h3 className="mb-0 text-success">
                       {formatCurrency(portfolioStats.totalReturns)}
                     </h3>
@@ -208,9 +288,9 @@ const InvestmentPortfolio = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 className="text-uppercase small text-muted">متوسط العائد</h6>
+                   <h6 className="text-uppercase small text-white">متوسط العائد</h6>
                     <h3 className="mb-0 text-warning">
-                      {portfolioStats.avgReturnRate}%
+                      {portfolioStats.avgprofit_percentage}%
                     </h3>
                   </div>
                   <div className="bg-warning bg-opacity-10 p-3 rounded">
@@ -226,7 +306,7 @@ const InvestmentPortfolio = () => {
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <h6 className="text-uppercase small text-muted">الحصص المعروضة</h6>
+                    <h6 className="text-uppercase small text-white">الحصص المعروضة</h6>
                     <h3 className="mb-0 text-info">
                       {portfolioStats.listedShares}
                     </h3>
@@ -239,7 +319,7 @@ const InvestmentPortfolio = () => {
             </Card>
           </Col>
         </Row>
-        
+
         {/* أدوات التحكم */}
         <Card className="border-0 shadow-sm mb-4" style={{ backgroundColor: '#1e1e1e' }}>
           <Card.Body>
@@ -257,10 +337,10 @@ const InvestmentPortfolio = () => {
                   />
                 </InputGroup>
               </Col>
-              
+
               <Col md={3}>
-                <Form.Select 
-                  value={statusFilter} 
+                <Form.Select
+                  value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="bg-dark text-light border-secondary"
                 >
@@ -270,7 +350,7 @@ const InvestmentPortfolio = () => {
                   <option value="معلق">معلق</option>
                 </Form.Select>
               </Col>
-              
+
               <Col md={3} className="d-flex">
                 <Button variant="outline-secondary" className="me-2 flex-grow-1" onClick={refreshData}>
                   <FaSync /> تحديث
@@ -282,7 +362,7 @@ const InvestmentPortfolio = () => {
             </Row>
           </Card.Body>
         </Card>
-        
+
         {/* جدول الحصص الاستثمارية */}
         <Card className="border-0 shadow-sm" style={{ backgroundColor: '#1e1e1e' }}>
           <Card.Header className="border-0 py-3 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#2a2a2a' }}>
@@ -302,11 +382,11 @@ const InvestmentPortfolio = () => {
                 <thead style={{ backgroundColor: '#2a2a2a' }}>
                   <tr>
                     <th>المصنع</th>
-                    <th>الصنف</th>
-                    <th>عدد الحصص</th>
+                    <th>نسبة الحصة</th>
                     <th>سعر الشراء</th>
-                    <th>القيمة الحالية</th>
+                    <th>تردد العائد</th>
                     <th>العوائد</th>
+                    <th>الهدف</th>
                     <th>الحالة</th>
                     <th>الإجراءات</th>
                   </tr>
@@ -315,25 +395,32 @@ const InvestmentPortfolio = () => {
                   {filteredPortfolio.map((share, index) => (
                     <tr key={index} style={{ backgroundColor: '#252525' }}>
                       <td className="fw-bold">{share.name}</td>
-                      <td>
-                        <Badge bg="secondary">{share.category}</Badge>
-                      </td>
-                      <td>{share.shares}</td>
-                      <td className="text-muted">{formatCurrency(share.purchasePrice)}</td>
-                      <td className="fw-bold">{formatCurrency(share.currentValue)}</td>
+                      <td>{share.shares}%</td>
+                      <td className="text-muted">{formatCurrency(share.amount)}</td>
+                      <td className="fw-bold">{share.payout_frequency}</td>
                       <td>
                         <div className="d-flex align-items-center">
-                          <span className="me-2 text-success">+{share.returnRate}%</span>
-                          <ProgressBar 
-                            now={share.returnRate} 
-                            variant="success" 
-                            style={{ height: '8px', width: '100px' }} 
+                          <span className="me-2 text-success">+{share.profit_percentage}%</span>
+                          <ProgressBar
+                            now={share.profit_percentage}
+                            variant="success"
+                            style={{ height: '8px', width: '100px' }}
                           />
                         </div>
                       </td>
                       <td>
-                        <Badge bg={share.status === 'نشط' ? 'success' : share.status === 'مكتمل' ? 'primary' : 'warning'}>
-                          {share.status}
+                        <div className="d-flex align-items-center">
+                          <span className="me-2 text-success">{calculateProgress(share.collected_amount,share.target_amount)}%</span>
+                          <ProgressBar
+                            now={calculateProgress(share.collected_amount,share.target_amount)}
+                            variant="success"
+                            style={{ height: '8px', width: '100px' }}
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <Badge bg={calculateProgress(share.collected_amount,share.target_amount) === 100 ? 'success' : 'warning'}>
+                          {calculateProgress(share.collected_amount,share.target_amount) === 100 ? 'مكتمل' : 'غير مكتمل'}
                         </Badge>
                         {share.listedForSale && (
                           <Badge bg="warning" className="ms-2">
@@ -344,16 +431,16 @@ const InvestmentPortfolio = () => {
                       <td>
                         <div className="d-flex gap-2">
                           {share.listedForSale ? (
-                            <Button 
-                              variant="outline-danger" 
+                            <Button
+                              variant="outline-danger"
                               size="sm"
                               onClick={() => removeListing(share)}
                             >
                               <FaTrash className="me-1" /> إلغاء
                             </Button>
                           ) : (
-                            <Button 
-                              variant="outline-warning" 
+                            <Button
+                              variant="outline-warning"
                               size="sm"
                               onClick={() => openSellModal(share)}
                               disabled={share.status !== 'نشط'}
@@ -379,7 +466,7 @@ const InvestmentPortfolio = () => {
             )}
           </Card.Body>
         </Card>
-        
+
         {/* أداء المحفظة */}
         <Card className="border-0 shadow-sm mt-4" style={{ backgroundColor: '#1e1e1e' }}>
           <Card.Header className="border-0 py-3" style={{ backgroundColor: '#2a2a2a' }}>
@@ -394,29 +481,29 @@ const InvestmentPortfolio = () => {
                   <h6 className="text-warning mb-4">توزيع الحصص حسب الصنف</h6>
                   <div className="mb-3">
                     <div className="d-flex justify-content-between mb-1">
-                      <span>أثاث</span>
-                      <span>25%</span>
+                      <span className="text-white">أثاث</span>
+                      <span className="text-white">25%</span>
                     </div>
                     <ProgressBar variant="warning" now={25} style={{ height: '10px' }} />
                   </div>
                   <div className="mb-3">
                     <div className="d-flex justify-content-between mb-1">
-                      <span>بلاستيك</span>
-                      <span>15%</span>
+                      <span className="text-white">بلاستيك</span>
+                      <span className="text-white">15%</span>
                     </div>
                     <ProgressBar variant="info" now={15} style={{ height: '10px' }} />
                   </div>
                   <div className="mb-3">
                     <div className="d-flex justify-content-between mb-1">
-                      <span>إلكترونيات</span>
-                      <span>35%</span>
+                      <span className="text-white">إلكترونيات</span>
+                      <span className="text-white">35%</span>
                     </div>
                     <ProgressBar variant="primary" now={35} style={{ height: '10px' }} />
                   </div>
                   <div>
                     <div className="d-flex justify-content-between mb-1">
-                      <span>ورق وطباعة</span>
-                      <span>25%</span>
+                      <span className="text-white">ورق وطباعة</span>
+                      <span className="text-white">25%</span>
                     </div>
                     <ProgressBar variant="success" now={25} style={{ height: '10px' }} />
                   </div>
@@ -432,7 +519,7 @@ const InvestmentPortfolio = () => {
                     <div>
                       <div className="fw-bold">مصنع الأثاث الحديث</div>
                       <div className="text-success">+25% عائد</div>
-                      <div className="text-muted small">قيمة حالية: {formatCurrency(312500)}</div>
+                      <div className="text-white small">قيمة حالية: {formatCurrency(312500)}</div>
                     </div>
                   </div>
                   <div className="d-flex align-items-center mb-4">
@@ -440,9 +527,9 @@ const InvestmentPortfolio = () => {
                       <FaCoins size={24} className="text-primary" />
                     </div>
                     <div>
-                      <div className="fw-bold">مصنع الورق الصحي</div>
+                      <div className="text-white fw-bold">مصنع الورق الصحي</div>
                       <div className="text-success">+25% عائد</div>
-                      <div className="text-muted small">قيمة حالية: {formatCurrency(375000)}</div>
+                      <div className="text-white small">قيمة حالية: {formatCurrency(375000)}</div>
                     </div>
                   </div>
                   <div className="d-flex align-items-center">
@@ -450,9 +537,9 @@ const InvestmentPortfolio = () => {
                       <FaCoins size={24} className="text-info" />
                     </div>
                     <div>
-                      <div className="fw-bold">مصنع الأدوات الكهربائية</div>
+                      <div className="text-white fw-bold">مصنع الأدوات الكهربائية</div>
                       <div className="text-success">+20% عائد</div>
-                      <div className="text-muted small">قيمة حالية: {formatCurrency(420000)}</div>
+                      <div className="text-white small">قيمة حالية: {formatCurrency(420000)}</div>
                     </div>
                   </div>
                 </div>
@@ -461,11 +548,11 @@ const InvestmentPortfolio = () => {
           </Card.Body>
         </Card>
       </Container>
-      
+
       {/* نافذة بيع الحصة */}
-      <Modal 
-        show={showSellModal} 
-        onHide={() => setShowSellModal(false)} 
+      <Modal
+        show={showSellModal}
+        onHide={() => setShowSellModal(false)}
         centered
         contentClassName="bg-dark text-light"
       >
@@ -480,19 +567,19 @@ const InvestmentPortfolio = () => {
               <div className="border rounded p-3 mb-4" style={{ backgroundColor: '#252525' }}>
                 <h5 className="text-warning">{selectedShare.name}</h5>
                 <div className="d-flex justify-content-between mb-2">
-                  <span>عدد الحصص:</span>
-                  <span className="fw-bold">{selectedShare.shares}</span>
+                  <span>نسبة الحصة:</span>
+                  <span className="fw-bold">{selectedShare.shares}%</span>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
                   <span>القيمة الحالية:</span>
-                  <span className="fw-bold">{formatCurrency(selectedShare.currentValue)}</span>
+                  <span className="fw-bold">{formatCurrency(selectedShare.amount)}</span>
                 </div>
                 <div className="d-flex justify-content-between">
                   <span>معدل العائد:</span>
-                  <span className="text-success fw-bold">+{selectedShare.returnRate}%</span>
+                  <span className="text-success fw-bold">+{selectedShare.profit_percentage}%</span>
                 </div>
               </div>
-              
+
               <Form.Group className="mb-4">
                 <Form.Label>سعر البيع المطلوب</Form.Label>
                 <InputGroup>
@@ -504,15 +591,15 @@ const InvestmentPortfolio = () => {
                     value={askPrice}
                     onChange={(e) => setAskPrice(parseInt(e.target.value) || 0)}
                     className="bg-dark text-light border-secondary"
-                    min={selectedShare.currentValue}
+                    min={selectedShare.amount}
                   />
                 </InputGroup>
-                <Form.Text className="text-muted">
-                  أدخل سعراً يساوي أو يزيد عن القيمة الحالية: {formatCurrency(selectedShare.currentValue)}
+                <Form.Text style={{color:"white"}}>
+                  أدخل سعراً يساوي أو يزيد عن القيمة الحالية: {formatCurrency(selectedShare.amount)}
                 </Form.Text>
               </Form.Group>
-              
-              <div className="alert alert-info bg-dark border-info">
+
+              <div className="alert alert-info border-info">
                 <FaInfoCircle className="me-2" />
                 ستظل حصتك معروضة للبيع لمدة 7 أيام أو حتى يتم بيعها
               </div>
@@ -523,10 +610,10 @@ const InvestmentPortfolio = () => {
           <Button variant="outline-secondary" onClick={() => setShowSellModal(false)}>
             إلغاء
           </Button>
-          <Button 
-            variant="warning" 
+          <Button
+            variant="warning"
             onClick={listShareForSale}
-            disabled={askPrice < selectedShare?.currentValue}
+            disabled={askPrice < selectedShare?.amount}
           >
             <FaDollarSign className="me-1" /> عرض للبيع
           </Button>

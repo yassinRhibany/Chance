@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Container, Card, Row, Col, Button, Badge, Form, Spinner, Alert, ProgressBar } from 'react-bootstrap';
-import { FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaUser, FaTag, FaUpload, FaTrash, FaArrowLeft, FaChartLine, FaCoins, FaMoneyBillWave, FaExclamationTriangle } from 'react-icons/fa';
+import { FaBuilding, FaMapMarkerAlt, FaCalendarAlt, FaUser, FaTag, FaUpload, FaTrash, FaArrowLeft, FaChartLine, FaCoins, FaMoneyBillWave, FaExclamationTriangle, FaArrowRight } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
 
@@ -18,7 +18,11 @@ const FactoryDetails = () => {
     const [success, setSuccess] = useState('');
     const [opportunities, setOpportunities] = useState([]);
     const [loadingOpportunities, setLoadingOpportunities] = useState(true);
-
+    const [refreshKey, setRefreshKey] = useState(0); // مفتاح للتحديث
+    // تنسيق الصور
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [autoPlay, setAutoPlay] = useState(true);
+    const [intervalId, setIntervalId] = useState(null);
     // جلب الفرص الاستثمارية
     useEffect(() => {
         const fetchOpportunities = async () => {
@@ -48,31 +52,29 @@ const FactoryDetails = () => {
         };
 
         if (item?.id && user?.token) fetchOpportunities();
-    }, [item.id, user?.token]);
+    }, [item.id, user?.token, refreshKey]); // أضف refreshKey كمتابع
 
-    // جلب الصور عند تحميل الصفحة
-    // useEffect(() => {
-    //     const fetchImages = async () => {
-    //         try {
-    //             const response = await axios.get(
-    //                 `http://127.0.0.1:8000/api/images/getFactoryImages/${item.id}`,
-    //                 {
-    //                     headers: { 'Authorization': `Bearer ${user.token}` }
-    //                 }
-    //             );
-    //             setImages(response.data.images || []);
-    //         } catch (err) {
-    //             console.error('Error fetching images:', err);
-    //         }
-    //     };
+    // جلب الصور عند تحميل الصفحة أو عند التحديث
+    useEffect(() => {
+        const fetchImages = async () => {
+            try {
+                const response = await axios.get(
+                    `http://127.0.0.1:8000/api/images/getFactoryImages/${item.id}`,
+                    {
+                        headers: { 'Authorization': `Bearer ${user.token}` }
+                    }
+                );
+                setImages(response.data.images || []);
+            } catch (err) {
+                console.error('Error fetching images:', err);
+            }
+        };
 
-    //     if (item?.id && user?.token) fetchImages();
-    // }, [item.id, user?.token]);
+        if (item?.id && user?.token) fetchImages();
+    }, [item.id, user?.token, refreshKey]); // أضف refreshKey كمتابع
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
-
-        // التحقق من أنواع الملفات
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
         const validFiles = files.filter(file => allowedTypes.includes(file.type));
 
@@ -95,12 +97,7 @@ const FactoryDetails = () => {
 
         try {
             const formData = new FormData();
-
-            // إضافة الصورة (يجب أن يكون المفتاح 'image' كما يتوقع الخادم)
-            formData.append('image', selectedFiles[0]); // استخدمنا [0] لأول ملف فقط
-
-            // إضافة الـ ID (إذا كان الخادم يتوقعه في FormData وليس في URL)
-            // formData.append('id', item.id);
+            formData.append('image', selectedFiles[0]);
 
             const response = await axios.post(
                 `http://127.0.0.1:8000/api/images/uploadFactoryImage/${item.id}`,
@@ -113,39 +110,25 @@ const FactoryDetails = () => {
                     }
                 }
             );
-            console.log(response)
+
             if (response.status === 200) {
-                // تحديث حالة الصور بناءً على استجابة الخادم
-                const newImage = response.data.image; // أو أي هيكل بيانات يعيده الخادم
-                // setImages([...images, newImage]);
                 setSuccess('تم رفع الصورة بنجاح');
                 setSelectedFiles([]);
+                setRefreshKey(prev => prev + 1); // تحديث الصفحة
             }
-            // throw new Error(response.data.message || 'فشل في رفع الصورة');
-            // }
         } catch (err) {
             let errorMessage = 'فشل في رفع الصورة';
-
             if (err.response) {
-                // معالجة أخطاء التحقق من الصحة 422
                 if (err.response.status === 422) {
                     errorMessage = 'بيانات غير صالحة: ';
                     if (err.response.data.errors) {
                         errorMessage += Object.values(err.response.data.errors).flat().join(', ');
-                    } else {
-                        errorMessage += err.response.data.message || 'لا توجد تفاصيل إضافية';
                     }
                 } else {
                     errorMessage = err.response.data.message || errorMessage;
                 }
             }
-            console.log(err)
             setError(errorMessage);
-            console.error('تفاصيل الخطأ:', {
-                status: err.response?.status,
-                data: err.response?.data,
-                config: err.config
-            });
         } finally {
             setUploading(false);
         }
@@ -159,14 +142,15 @@ const FactoryDetails = () => {
                     headers: { 'Authorization': `Bearer ${user.token}` }
                 }
             );
-            setImages(prev => prev.filter(img => img.id !== imageId));
             setSuccess('تم حذف الصورة بنجاح');
+            setRefreshKey(prev => prev + 1); // تحديث الصفحة
         } catch (err) {
             setError('فشل في حذف الصورة');
             console.error('Delete Error:', err);
         }
     };
 
+    // الدوال المساعدة الأخرى تبقى كما هي
     const getStatusBadge = (status) => {
         const statusMap = {
             'approved': 'success',
@@ -180,10 +164,7 @@ const FactoryDetails = () => {
     };
 
     const IsActive = (state) => {
-        if (state = 1)
-            return 'نشط'
-        else
-            return 'غير نشط'
+        return state == 1 ? 'نشط' : 'غير نشط';
     }
 
     const calculateProgress = (collected, target) => {
@@ -201,6 +182,47 @@ const FactoryDetails = () => {
         });
     };
 
+    // وظائف تنسيق عرض الصور
+
+    // دالة للصورة التالية
+    const nextImage = useCallback(() => {
+        setCurrentImageIndex((prevIndex) =>
+            prevIndex === images.length - 1 ? 0 : prevIndex + 1
+        );
+    }, [images.length]);
+
+    // دالة للصورة السابقة
+    const prevImage = useCallback(() => {
+        setCurrentImageIndex((prevIndex) =>
+            prevIndex === 0 ? images.length - 1 : prevIndex - 1
+        );
+    }, [images.length]);
+
+    // بدء التشغيل التلقائي
+    useEffect(() => {
+        if (autoPlay && images.length > 1) {
+            const id = setInterval(() => {
+                nextImage();
+            }, 3000); // تغيير الصورة كل 3 ثواني
+            setIntervalId(id);
+
+            return () => clearInterval(id);
+        }
+    }, [autoPlay, images.length, nextImage]);
+
+    // إيقاف التشغيل التلقائي عند التفاعل
+    const handleUserInteraction = () => {
+        setAutoPlay(false);
+        if (intervalId) {
+            clearInterval(intervalId);
+            setIntervalId(null);
+        }
+
+        // استئناف التشغيل التلقائي بعد 10 ثواني من عدم التفاعل
+        setTimeout(() => {
+            setAutoPlay(true);
+        }, 10000);
+    };
     return (
         <div className="factory-details-page dark-theme" style={{
             backgroundColor: '#121212',
@@ -232,32 +254,129 @@ const FactoryDetails = () => {
                 )}
 
                 <Card className="border-0 shadow-sm mb-4" style={{ backgroundColor: '#1e1e1e' }}>
-                    <div className="factory-gallery" style={{ height: '300px', overflow: 'hidden' }}>
+                    <div className="factory-gallery" style={{
+                        height: '400px',
+                        overflow: 'hidden',
+                        position: 'relative'
+                    }}>
                         {images.length > 0 ? (
-                            <div style={{ display: 'flex', height: '100%', background: '#121212' }}>
-                                {images.map((img, index) => (
-                                    <div key={index} style={{
-                                        position: 'relative',
-                                        flex: '1',
-                                        minWidth: '0',
-                                        overflow: 'hidden'
-                                    }}>
-                                        <img
-                                            src={img.url}
-                                            alt={`صورة المصنع ${index + 1}`}
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            style={{ position: 'absolute', top: '10px', left: '10px' }}
-                                            onClick={() => handleDeleteImage(img.id)}
+                            <>
+                                <div style={{
+                                    display: 'flex',
+                                    height: '100%',
+                                    width: '100%',
+                                    position: 'relative'
+                                }}>
+                                    {images.map((img, index) => (
+                                        <div
+                                            key={img.id}
+                                            style={{
+                                                position: 'absolute',
+                                                width: '100%',
+                                                height: '100%',
+                                                transition: 'opacity 0.5s ease',
+                                                opacity: index === currentImageIndex ? 1 : 0,
+                                                zIndex: index === currentImageIndex ? 1 : 0
+                                            }}
                                         >
-                                            <FaTrash />
+                                            <img
+                                                src={`http://127.0.0.1:8000/storage/${img.image_path}`}
+                                                alt={`صورة المصنع ${index + 1}`}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover',
+                                                    backgroundColor: '#000'
+                                                }}
+                                            />
+                                            <Button
+                                                variant="danger"
+                                                size="sm"
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '10px',
+                                                    left: '10px',
+                                                    zIndex: 2
+                                                }}
+                                                onClick={() => handleDeleteImage(img.id)}
+                                            >
+                                                <FaTrash />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* أسهم التنقل */}
+                                {images.length > 1 && (
+                                    <>
+                                        <Button
+                                            variant="outline-light"
+                                            style={{
+                                                position: 'absolute',
+                                                left: '10px',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                zIndex: 2,
+                                                borderRadius: '50%',
+                                                width: '40px',
+                                                height: '40px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                            onClick={prevImage}
+                                        >
+                                            <FaArrowLeft />
                                         </Button>
+                                        <Button
+                                            variant="outline-light"
+                                            style={{
+                                                position: 'absolute',
+                                                right: '10px',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                zIndex: 2,
+                                                borderRadius: '50%',
+                                                width: '40px',
+                                                height: '40px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                            onClick={nextImage}
+                                        >
+                                            <FaArrowRight />
+                                        </Button>
+                                    </>
+                                )}
+
+                                {/* نقاط التوجيه */}
+                                {images.length > 1 && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: '10px',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        zIndex: 2,
+                                        display: 'flex',
+                                        gap: '8px'
+                                    }}>
+                                        {images.map((_, index) => (
+                                            <div
+                                                key={index}
+                                                style={{
+                                                    width: '10px',
+                                                    height: '10px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: index === currentImageIndex ? '#fff' : 'rgba(255,255,255,0.5)',
+                                                    cursor: 'pointer'
+                                                }}
+                                                onClick={() => setCurrentImageIndex(index)}
+                                            />
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                )}
+                            </>
                         ) : (
                             <div className="d-flex justify-content-center align-items-center h-100 bg-dark">
                                 <div className="text-center text-light">
@@ -267,6 +386,7 @@ const FactoryDetails = () => {
                             </div>
                         )}
                     </div>
+
 
                     <Card.Body>
                         <div className="mb-4 p-3 border rounded" style={{ backgroundColor: '#121212', borderColor: '#333' }}>
@@ -363,9 +483,9 @@ const FactoryDetails = () => {
                                                     <div className="fw-bold text-light">
 
                                                         <Badge bg={getStatusBadge(item.is_active)} className="fs-6">
-                                                       {IsActive(item.is_active)}
+                                                            {IsActive(item.is_active)}
                                                         </Badge>
-                                                      
+
 
                                                     </div>
                                                 </Col>

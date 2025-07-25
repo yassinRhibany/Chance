@@ -18,9 +18,9 @@ import Wallet from './pages/Payment/payment';
 import FactoryRegistration from './pages/website/FactoryOwner/FactoryRegistration';
 import FinancialTransactions from './pages/website/userinfo/FinancialTransactions ';
 import UnauthorizedPage from './pages/website/Unauthorized/Unauthorized'
-import {InvestorLayout} from './Auth/ProtectRouts/InvestorLayout'
-import {FactoryLayout} from './Auth/ProtectRouts/FactoryLayout'
-import {AdminLayout} from './Auth/ProtectRouts/AdminLayout'
+import { InvestorLayout } from './Auth/ProtectRouts/InvestorLayout'
+import { FactoryLayout } from './Auth/ProtectRouts/FactoryLayout'
+import { AdminLayout } from './Auth/ProtectRouts/AdminLayout'
 import { AuthProvider } from './Context/AuthContext'; // أضفنا هذا الاستيراد
 
 import AdminAccountsPage from './pages/website/Admin/AdminAccountsPage';
@@ -47,9 +47,9 @@ export default function App() {
           <Header />
           <div className='content-wrappe' style={{ display: 'flex', minHeight: '100vh' }} >
             <Sidebar />
-            {/* المحتوى الرئيسي */} 
+            {/* المحتوى الرئيسي */}
             <div className="main-content" style={{ flex: 1 }}>
-             <Routes>
+              <Routes>
 
 
                 {/* مسارات عامة */}
@@ -58,18 +58,16 @@ export default function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<About />} />
-                
 
                 {/* مسارات المدير */}
                 <Route element={<AdminLayout />}>
-                 <Route path='/Admin/AdminAccountsPage' element={<AdminAccountsPage/>}/>
-                 <Route path="UserDetailsPage" element={<UserDetailsPage />} />
-                 <Route path="/Admin/AdminInvestmentPage" element={<AdminInvestmentPage />} />
-                 <Route path="/Admin/AdminFactories" element={<AdminFactories />} />
-                 <Route path="/Admin/AdminReturnes" element={<AdminReturnes/>} />
-                 <Route path="/Admin/ReportsPage" element={<ReportsPage/>} />
-                 <Route path="/Admin/AdminFinancialTransactions" element={<AdminFinancialTransactions/>} />
-                 
+                  <Route path='/Admin/AdminAccountsPage' element={<AdminAccountsPage />} />
+                  <Route path="UserDetailsPage" element={<UserDetailsPage />} />
+                  <Route path="/Admin/AdminInvestmentPage" element={<AdminInvestmentPage />} />
+                  <Route path="/Admin/AdminFactories" element={<AdminFactories />} />
+                  <Route path="/Admin/AdminReturnes" element={<AdminReturnes />} />
+                  <Route path="/Admin/ReportsPage" element={<ReportsPage />} />
+                  <Route path="/Admin/AdminFinancialTransactions" element={<AdminFinancialTransactions />} />
                 </Route>
 
                 {/* مسارات المستثمر */}
@@ -79,20 +77,12 @@ export default function App() {
                   <Route path="/investor/wallet" element={<Wallet />} />
                   <Route path="/investor/record" element={<Investmentrecord />} />
                   <Route path="/investor/investment/:id" element={<InvestmentDetails />} />
-                 
-                  
-                 
                   <Route path="/CompleteUserProfile" element={<CompleteUserProfile />} />
-
                   <Route path="/investor/transactions" element={<FinancialTransactions />} />
-                  <Route path="/investor/TrackReturnes" element={<TrackReturnes/>} />
-                  <Route path="/investor/InvestmentPortfolio" element={<InvestmentPortfolio/>} />
-                  <Route path="/investor/MarketTrading" element={<MarketTrading/>} />
-
-                  
-
+                  <Route path="/investor/TrackReturnes" element={<TrackReturnes />} />
+                  <Route path="/investor/InvestmentPortfolio" element={<InvestmentPortfolio />} />
+                  <Route path="/investor/MarketTrading" element={<MarketTrading />} />
                 </Route>
-
 
                 {/* مسارات صاحب المصنع */}
                 <Route element={<FactoryLayout />}>

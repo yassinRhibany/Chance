@@ -69,12 +69,12 @@ const MarketTrading = () => {
   
   // تنسيق العملة
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('ar-SA', {
-      style: 'currency',
-      currency: 'SAR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0
+  }).format(amount);
+};
 
   // شراء حصة من السوق
   const buyShare = (share) => {
@@ -279,9 +279,9 @@ const MarketTrading = () => {
               </Table>
             ) : (
               <div className="text-center py-5" style={{ backgroundColor: '#252525' }}>
-                <FaInfoCircle size={48} className="text-muted mb-3" />
+                <FaInfoCircle size={48} className="text-white mb-3" />
                 <h5 className="text-light">لا توجد حصص مطابقة لمعايير البحث</h5>
-                <p className="text-muted">حاول تغيير معايير البحث أو عد لاحقاً</p>
+                <p className="text-white">حاول تغيير معايير البحث أو عد لاحقاً</p>
               </div>
             )}
           </Card.Body>
@@ -306,7 +306,7 @@ const MarketTrading = () => {
                         </div>
                         <div>
                           <h6 className="text-light">البحث والاختيار</h6>
-                          <p className="text-muted mb-0">
+                          <p className="text-white mb-0">
                             تصفح الحصص المتاحة باستخدام فلاتر البحث واختر ما يناسب استثماراتك
                           </p>
                         </div>
@@ -320,7 +320,7 @@ const MarketTrading = () => {
                         </div>
                         <div>
                           <h6 className="text-light">عملية الشراء</h6>
-                          <p className="text-muted mb-0">
+                          <p className="text-white mb-0">
                             اضغط على زر الشراء وأكمل عملية الدفع لتصبح مالكاً للحصة
                           </p>
                         </div>
@@ -334,7 +334,7 @@ const MarketTrading = () => {
                         </div>
                         <div>
                           <h6 className="text-light">الملكية والتحويل</h6>
-                          <p className="text-muted mb-0">
+                          <p className="text-white mb-0">
                             تنتقل ملكية الحصة إلى محفظتك فور إتمام عملية الشراء
                           </p>
                         </div>
@@ -367,7 +367,7 @@ const MarketTrading = () => {
                       </div>
                       <div>
                         <h6 className="text-light">سيولة مالية</h6>
-                        <p className="text-muted mb-0">
+                        <p className="text-white mb-0">
                           تحويل استثماراتك إلى سيولة نقدية عند الحاجة
                         </p>
                       </div>
@@ -381,7 +381,7 @@ const MarketTrading = () => {
                       </div>
                       <div>
                         <h6 className="text-light">تنويع المحفظة</h6>
-                        <p className="text-muted mb-0">
+                        <p className="text-white mb-0">
                           شراء حصص في مشاريع جديدة لتحقيق التوازن
                         </p>
                       </div>
@@ -395,7 +395,7 @@ const MarketTrading = () => {
                       </div>
                       <div>
                         <h6 className="text-light">تحقيق أرباح</h6>
-                        <p className="text-muted mb-0">
+                        <p className="text-white mb-0">
                           بيع الحصص بعد ارتفاع قيمتها لتحقيق أرباح سريعة
                         </p>
                       </div>
@@ -409,7 +409,7 @@ const MarketTrading = () => {
                       </div>
                       <div>
                         <h6 className="text-light">دخل شهري</h6>
-                        <p className="text-muted mb-0">
+                        <p className="text-white mb-0">
                           تحقيق عوائد شهرية من أرباح المصانع
                         </p>
                       </div>
@@ -423,7 +423,7 @@ const MarketTrading = () => {
                       </div>
                       <div>
                         <h6 className="text-light">شفافية كاملة</h6>
-                        <p className="text-muted mb-0">
+                        <p className="text-white mb-0">
                           بيانات واضحة ومحدثة عن أداء المصانع
                         </p>
                       </div>
@@ -433,11 +433,11 @@ const MarketTrading = () => {
                   <Col md={4} className="mb-4">
                     <div className="d-flex">
                       <div className="bg-purple bg-opacity-10 p-3 rounded me-3">
-                        <FaSearch size={24} className="text-purple" />
+                        <FaSearch size={24} />
                       </div>
                       <div>
                         <h6 className="text-light">سهولة التداول</h6>
-                        <p className="text-muted mb-0">
+                        <p className="text-white mb-0">
                           منصة سهلة الاستخدام لبيع وشراء الحصص
                         </p>
                       </div>

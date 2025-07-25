@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Spinner, Alert, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, ProgressBar, Badge } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../../Context/AuthContext';
@@ -17,9 +17,7 @@ const Investment = () => {
   const [message, setMessage] = useState('');
   const [messageColor, setMessageColor] = useState('');
   const [showMessage, setShowMessage] = useState(false);
-
   const { user } = useAuth();
-  // console.log(user)
   const API_URL = 'http://127.0.0.1:8000/api';
 
   useEffect(() => {
@@ -40,7 +38,6 @@ const Investment = () => {
           `${API_URL}/InvestmentOpprtunities/getAcceptedOpportunitiesWithDetails`,
           config
         );
-        // console.log(response.data);
 
         const apiData = response.data;
 
@@ -48,24 +45,49 @@ const Investment = () => {
           throw new Error('تنسيق البيانات غير صحيح');
         }
 
-        const formattedOpportunities = apiData.map(item => ({
-          id: item.opportunity_id,
-          collected_amount: item.opportunity_collected_amount || '10',
-          minimum_target: item.opportunity_minimum_target,
-          opportunity_strtup: item.opportunity_strtup || 'غير محدد',
-          opportunity_payout_frequency:item.opportunity_payout_frequency ||'غير محدد',
-          opportunity_profit_percentage:item.opportunity_profit_percentage,
-          category: item.category_name || 'غير محدد',
-          name: item.factory_name || 'غير معروف',
-          address: item.factory_address || 'غير محدد',
-          factory_feasibility_pdf:item.factory_feasibility_pdf,
-          image: item.image_url || `https://source.unsplash.com/random/300x200?factory=${item.opportunity_id}`,
-          target_amount: item.opportunity_target_amount,
-          description: item.opportunity_description || 'لا يوجد وصف متاح',
+        // جلب الصور لكل مصنع بشكل متوازي
+        const opportunitiesWithImages = await Promise.all(
+          apiData.map(async (item) => {
+            try {
+              const imageResponse = await axios.get(
+                `${API_URL}/images/getFactoryImages/${item.factory_id}`,
+                {
+                  headers: { 'Authorization': `Bearer ${user.token}` }
+                }
+              );
 
-        }));
+              const imagePath = imageResponse.data.images?.[0]?.image_path
+                ? `http://127.0.0.1:8000/storage/${imageResponse.data.images[1].image_path}`
+                : '';
 
-        setOpportunities(formattedOpportunities);
+              return {
+                id: item.opportunity_id,
+                factory_id: item.factory_id,
+                collected_amount: item.opportunity_collected_amount || '10',
+                minimum_target: item.opportunity_minimum_target,
+                opportunity_strtup: item.opportunity_strtup || 'غير محدد',
+                opportunity_payout_frequency: item.opportunity_payout_frequency || 'غير محدد',
+                opportunity_profit_percentage: item.opportunity_profit_percentage,
+                category: item.category_name || 'غير محدد',
+                name: item.factory_name || 'غير معروف',
+                address: item.factory_address || 'غير محدد',
+                factory_feasibility_pdf: item.factory_feasibility_pdf,
+                image: imagePath,
+                target_amount: item.opportunity_target_amount,
+                description: item.opportunity_description || 'لا يوجد وصف متاح',
+              };
+            } catch (imageError) {
+              console.error('Error fetching image:', imageError);
+              return {
+                ...item,
+                image: '/default-image.jpg'
+              };
+            }
+          })
+        );
+
+        setOpportunities(opportunitiesWithImages);
+
       } catch (err) {
         const errorMsg = err.response?.data?.message || err.message || 'حدث خطأ أثناء جلب الفرص الاستثمارية';
         setError(errorMsg);
@@ -81,9 +103,16 @@ const Investment = () => {
   }, [user]);
 
   const formatCurrency = (amount) => {
-    if (!amount) return '0.00 ريال';
-    const num = parseFloat(amount);
-    return new Intl.NumberFormat('ar-SA').format(num) + ' ريال';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0
+  }).format(amount);
+};
+
+  const calculateProgress = (collected, target) => {
+    if (!collected || !target) return 0;
+    return (collected / target) * 100;
   };
 
   if (loading) {
@@ -162,36 +191,47 @@ const Investment = () => {
                   color: lightText,
                   border: `1px solid ${accent}`,
                   borderRadius: '15px',
-                  height: '100%'
+                  height: '100%',
+                  transition: 'transform 0.3s',
+                  ':hover': {
+                    transform: 'translateY(-5px)'
+                  }
                 }}>
                   <Card.Img
                     variant="top"
                     src={opportunity.image}
+                    alt='imag not found'
                     style={{
                       height: '250px',
                       objectFit: 'cover',
                       borderTopLeftRadius: '15px',
                       borderTopRightRadius: '15px'
                     }}
+                    onError={(e) => {
+                      e.target.src = '/default-image.jpg';
+                    }}
                   />
                   <Card.Body className="text-end">
                     <Card.Title style={{ color: accent }}>
                       {opportunity.name}
+                      <Badge bg="warning" text="dark" className="me-2">
+                        {opportunity.category}
+                      </Badge>
                     </Card.Title>
                     <Card.Text>
                       <div>
+                        <p>📍 العنوان: {opportunity.address}</p>
                         <p>💰 المبلغ المستهدف: {formatCurrency(opportunity.target_amount)}</p>
-                        <p>📉 الحد الأدنى للمساهمة: {formatCurrency(opportunity.minimum_target)}</p>
+                        <p>📉 الحد الأدنى: {formatCurrency(opportunity.minimum_target)}</p>
                         <div className="mb-3">
                           <h6 style={{ color: accent }}>مستوى الإنجاز:</h6>
                           <ProgressBar
-                            now={(opportunity.collected_amount/opportunity.target_amount)*100}
-                            label={`${(opportunity.collected_amount/opportunity.target_amount)*100}%`}
-                           variant="success"
-                           animated
+                            now={calculateProgress(opportunity.collected_amount, opportunity.target_amount)}
+                            label={`${calculateProgress(opportunity.collected_amount, opportunity.target_amount).toFixed(2)}%`}
+                            variant="success"
+                            animated
                             style={{ height: '20px' }}
                           />
-
                         </div>
                       </div>
                     </Card.Text>

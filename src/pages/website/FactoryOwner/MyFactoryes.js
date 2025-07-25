@@ -193,7 +193,7 @@ console.log(response)
   const getStatusBadge = (status) => {
     const statusMap = {
       'approved': 'success',
-      'reject': 'warning',
+      'rejected': 'danger',
       'pending': 'primary'
     };
     return statusMap[status] || 'secondary';
